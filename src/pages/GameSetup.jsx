@@ -7,7 +7,7 @@ import './GameSetup.css';
 const GameSetup = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { openPasteModal } = useUI();
+    const { openPasteModal, openCommunityModal } = useUI();
     const [selectedSource, setSelectedSource] = useState(null);
     const [error, setError] = useState(null);
 
@@ -39,6 +39,8 @@ const GameSetup = () => {
     const handleSourceSelect = (sourceId) => {
         if (sourceId === 'paste') {
             openPasteModal();
+        } else if (sourceId === 'community') {
+            openCommunityModal();
         } else {
             setSelectedSource(sourceId);
             setError(null);

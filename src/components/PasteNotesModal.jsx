@@ -54,6 +54,8 @@ const PasteNotesModal = () => {
             // Save to Firestore
             const quizRef = await addDoc(collection(db, 'quizzes'), {
                 userId: currentUser.uid,
+                creatorName: userProfile?.displayName || currentUser.email.split('@')[0],
+                creatorAvatar: userProfile?.photoURL || null,
                 topic: analysis.topic,
                 summary: analysis.summary,
                 questions: questions,

@@ -10,6 +10,7 @@ export function UIProvider({ children }) {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isSignupOpen, setIsSignupOpen] = useState(false);
     const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
+    const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
     const [quizData, setQuizData] = useState(null);
 
@@ -40,6 +41,16 @@ export function UIProvider({ children }) {
 
     const closePasteModal = () => setIsPasteModalOpen(false);
 
+    const openCommunityModal = () => {
+        setIsCommunityModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsQuizModalOpen(false);
+    };
+
+    const closeCommunityModal = () => setIsCommunityModalOpen(false);
+
     const openQuiz = (data) => {
         setQuizData(data);
         setIsQuizModalOpen(true);
@@ -67,6 +78,7 @@ export function UIProvider({ children }) {
         isLoginOpen,
         isSignupOpen,
         isPasteModalOpen,
+        isCommunityModalOpen,
         isQuizModalOpen,
         quizData,
         openLogin,
@@ -75,6 +87,8 @@ export function UIProvider({ children }) {
         closeSignup,
         openPasteModal,
         closePasteModal,
+        openCommunityModal,
+        closeCommunityModal,
         openQuiz,
         closeQuiz,
         switchToSignup,

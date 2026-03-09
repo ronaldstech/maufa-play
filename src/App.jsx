@@ -14,6 +14,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import PasteNotesModal from './components/PasteNotesModal';
 import Modal from './components/Modal';
+import CommunityModal from './components/CommunityModal';
 
 function AppContent() {
   const { isLoginOpen, closeLogin, isSignupOpen, closeSignup } = useUI();
@@ -48,6 +49,9 @@ function AppContent() {
 
       {/* Interactive Quiz Modal */}
       <QuizModalPlay />
+
+      {/* Community Content Browser */}
+      <CommunityModal />
     </div>
   );
 }
