@@ -77,18 +77,10 @@ const CommunityModal = () => {
     if (!isCommunityModalOpen) return null;
 
     return (
-        <Modal isOpen={isCommunityModalOpen} onClose={closeCommunityModal} maxWidth="1000px">
+        <Modal isOpen={isCommunityModalOpen} onClose={closeCommunityModal} maxWidth="1000px" title="Student Community Content">
             <div className="community-modal-container">
-                <header className="community-header">
-                    <div className="header-left">
-                        <div className="icon-box">
-                            <Users size={24} />
-                        </div>
-                        <div>
-                            <h2>Student Community Content</h2>
-                            <p>Explore and learn from quizzes created by peers.</p>
-                        </div>
-                    </div>
+                <div className="community-sub-header">
+                    <p>Explore and learn from quizzes created by peers.</p>
                     <div className="search-bar-wrapper">
                         <Search className="search-icon" size={18} />
                         <input
@@ -98,7 +90,7 @@ const CommunityModal = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                </header>
+                </div>
 
                 <div className="community-body">
                     {loading ? (
@@ -160,8 +152,8 @@ const CommunityModal = () => {
                 </div>
 
                 <div className="community-footer">
-                    <p>Total Community Contribution: <strong>{quizzes.length}+</strong> Quizzes</p>
-                    <button className="btn-ghost" onClick={closeCommunityModal}>Close Browser</button>
+                    <p>Total Contribution: <strong>{quizzes.length}+</strong> Quizzes</p>
+                    <button className="btn-ghost" onClick={closeCommunityModal}>Close</button>
                 </div>
             </div>
         </Modal>

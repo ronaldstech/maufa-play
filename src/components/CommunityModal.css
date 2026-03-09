@@ -1,48 +1,26 @@
 .community-modal-container {
     display: flex;
     flex-direction: column;
-    min-height: 500px;
-    max-height: 85vh;
+    height: 100%;
 }
 
-.community-header {
-    padding: 1.5rem 2rem;
+.community-sub-header {
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 2rem;
-    background: rgba(255, 255, 255, 0.02);
+    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.01);
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-}
-
-.header-left .icon-box {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    box-shadow: 0 8px 16px rgba(124, 58, 237, 0.2);
-}
-
-.header-left h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-}
-
-.header-left p {
-    font-size: 0.9rem;
+.community-sub-header p {
+    font-size: 0.85rem;
     color: var(--text-secondary);
+    margin: 0;
 }
+
+/* .header-left removed as it's consolidated into Modal title */
 
 .search-bar-wrapper {
     position: relative;
@@ -78,9 +56,8 @@
 
 .community-body {
     flex: 1;
-    overflow-y: auto;
-    padding: 2rem;
-    min-height: 400px;
+    overflow-y: visible;
+    padding: 1.5rem;
 }
 
 .community-loading,
@@ -227,7 +204,7 @@
 }
 
 .community-footer {
-    padding: 1.25rem 2rem;
+    padding: 1rem 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: space-between;
@@ -245,7 +222,7 @@
 }
 
 @media (max-width: 768px) {
-    .community-header {
+    .community-sub-header {
         flex-direction: column;
         align-items: stretch;
         padding: 1.25rem;
@@ -257,7 +234,7 @@
     }
 
     .community-body {
-        padding: 1.25rem;
+        padding: 1rem;
     }
 
     .quizzes-grid {

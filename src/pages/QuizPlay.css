@@ -3,10 +3,10 @@
     padding: 0;
     color: var(--text-primary);
     position: relative;
-    flex: 1;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+    overflow: hidden;
     width: 100%;
 }
 
@@ -15,11 +15,12 @@
 .quiz-play-flow {
     display: flex;
     flex-direction: column;
-    min-height: 100%;
-    /* Changed from height: 100% to allow expansion */
+    height: 100%;
+    /* Use full height and flex-direction: column to manage fixed parts */
     gap: 0;
     padding: 1.5rem;
     animation: modal-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
 }
 
 @media (max-width: 768px) {
@@ -46,6 +47,8 @@
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
+    flex-shrink: 0;
+    padding-bottom: 1rem;
 }
 
 .quiz-info {
@@ -137,10 +140,27 @@
 /* Question Section */
 .question-section {
     padding: 1.5rem 0;
-    /* Removed flex: 1 to allow natural height growth during scroll */
+    flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
+    overflow-y: auto;
+    /* Custom scrollbar for better look */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.question-section::-webkit-scrollbar {
+    width: 6px;
+}
+
+.question-section::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.question-section::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 .question-text {
@@ -282,6 +302,7 @@
     padding: 1.5rem 0;
     margin-top: auto;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
 }
 
 .control-btn {
