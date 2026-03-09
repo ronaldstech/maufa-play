@@ -196,119 +196,228 @@
     color: var(--accent-purple);
 }
 
-/* Detail View Styles */
+/* Results Flow - Rebuilt Detail View */
 .history-detail-view {
     display: flex;
     flex-direction: column;
+    height: 100%;
+    gap: 0;
+    overflow-y: auto;
+    background: #0f172a;
 }
 
-.detail-hero-section {
+.results-container {
     position: relative;
-    padding: 2rem;
+    padding: 2rem 1rem;
     overflow: hidden;
-    background: #0b1120;
+    background: #0f172a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
     flex-shrink: 0;
 }
 
-.detail-hero-card {
+/* Background Decorative Glows */
+.bg-glow-purple,
+.bg-glow-pink {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.12;
+    z-index: 0;
+}
+
+.bg-glow-purple {
+    top: -50px;
+    left: -50px;
+    background: #7c3aed;
+}
+
+.bg-glow-pink {
+    bottom: -50px;
+    right: -50px;
+    background: #ec4899;
+}
+
+.results-card {
     position: relative;
     z-index: 1;
-    max-width: 900px;
-    margin: 0 auto;
+    width: 100%;
+    max-width: 800px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 32px;
     padding: 2rem;
     backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-.modal-back-btn {
+.results-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    padding: 0.6rem 1.2rem;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 2rem;
-    transition: all 0.3s ease;
-}
-
-.modal-back-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateX(-4px);
-}
-
-.detail-hero-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
-}
-
-.hero-main-info h1 {
-    font-size: 2rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    color: #fff;
-}
-
-.hero-main-info p {
-    color: var(--text-tertiary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.hero-metrics {
-    display: flex;
     gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
-.hero-metric-pill {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 1rem 1.5rem;
+.icon-badge {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+}
+
+.header-text h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.header-text p {
+    font-size: 0.9rem;
+    color: var(--accent-blue, #60a5fa);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0.25rem 0 0 0;
+}
+
+.hero-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+}
+
+.score-visualization {
+    display: flex;
+    justify-content: center;
+}
+
+.progress-ring-wrapper {
+    position: relative;
+    width: 180px;
+    height: 180px;
+}
+
+.progress-ring-wrapper svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.ring-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.03);
+    stroke-width: 8;
+}
+
+.ring-progress {
+    fill: none;
+    stroke: url(#score-gradient);
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.score-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+}
+
+.score-display .current {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: white;
+}
+
+.score-display .divider {
+    width: 40px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0.25rem 0;
+}
+
+.score-display .total {
+    font-size: 1.1rem;
+    color: var(--text-tertiary);
+    font-weight: 600;
+}
+
+.metrics-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.metric-pill {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.25rem 1.75rem;
     border-radius: 20px;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    min-width: 150px;
+    gap: 1.25rem;
+    transition: all 0.3s ease;
 }
 
-.hero-metric-pill .label {
-    font-size: 0.7rem;
+.metric-pill svg {
+    color: var(--accent-purple, #a855f7);
+}
+
+.metric-data {
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-data .label {
+    font-size: 0.75rem;
     text-transform: uppercase;
     color: var(--text-tertiary);
     font-weight: 800;
-    display: block;
+    letter-spacing: 1px;
 }
 
-.hero-metric-pill .value {
+.metric-data .value {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #fff;
+    color: white;
 }
 
-/* Analysis Styles */
-.detail-analysis-section {
-    padding: 4rem 2rem 8rem;
-    max-width: 900px;
-    margin: 0 auto;
-    width: 100%;
+/* Performance Review Styles */
+.performance-review {
+    padding: 3rem 2rem 6rem 2rem;
+    background: #0f172a;
+    position: relative;
+    z-index: 1;
 }
 
-.analysis-header {
-    text-align: center;
+.review-header-section {
     margin-bottom: 3rem;
+    text-align: center;
 }
 
-.analysis-header h3 {
+.review-header-section h3 {
     font-size: 1.75rem;
     font-weight: 800;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -316,17 +425,20 @@
     margin-bottom: 0.5rem;
 }
 
-.analysis-header p {
+.review-header-section p {
     color: var(--text-tertiary);
+    font-size: 1rem;
 }
 
-.analysis-list {
+.review-list {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-.analysis-item {
+.review-item {
     display: flex;
     gap: 1.5rem;
     background: rgba(255, 255, 255, 0.02);
@@ -334,23 +446,22 @@
     border-radius: 24px;
     padding: 1.5rem;
     transition: all 0.3s ease;
-    animation: slide-up 0.6s ease-out both;
 }
 
-.analysis-item.is-correct {
+.review-item.is-correct {
     border-left: 4px solid #10b981;
 }
 
-.analysis-item.is-incorrect {
+.review-item.is-incorrect {
     border-left: 4px solid #ef4444;
 }
 
-.analysis-item-number {
+.review-item-number {
     flex-shrink: 0;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -358,126 +469,152 @@
     color: var(--text-tertiary);
 }
 
-.analysis-item-body {
+.review-item-body {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
 }
 
-.analysis-item-header {
+.review-item-header {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     gap: 1rem;
 }
 
-.analysis-question {
-    font-size: 1.2rem;
+.review-question {
+    font-size: 1.25rem;
     font-weight: 700;
-    margin: 0;
     line-height: 1.4;
+    color: #f1f5f9;
+    margin: 0;
 }
 
-.analysis-answers-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-/* Common Status & Pills */
 .status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.5rem;
     padding: 0.4rem 0.8rem;
     border-radius: 100px;
-    font-size: 0.7rem;
-    font-weight: 800;
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 .status-badge.correct {
     background: rgba(16, 185, 129, 0.1);
     color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .status-badge.incorrect {
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+.review-answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.answer-pill {
+    padding: 1rem;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.answer-pill .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.answer-pill .value {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.answer-pill.correct .value {
+    color: #10b981;
+}
+
+.answer-pill.yours .value {
+    color: #ef4444;
+}
+
+/* Footer & Responsive */
 .history-modal-footer {
     position: sticky;
     bottom: 0;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(20px);
+    background: #0f172a;
     padding: 1.5rem;
     display: flex;
     justify-content: center;
-    gap: 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     z-index: 100;
 }
 
-/* Status Views */
-.history-status-view {
-    padding: 6rem 2rem;
-    text-align: center;
-    color: var(--text-tertiary);
-}
-
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.empty-state svg {
-    opacity: 0.2;
-}
-
-.empty-state h2 {
-    color: #fff;
-    font-size: 1.5rem;
-}
-
-/* Responsive Adjustments */
 @media (max-width: 768px) {
-    .history-list-view {
-        padding: 1rem;
+    .history-container {
+        padding: 0 1rem;
     }
 
-    .detail-hero-content {
-        flex-direction: column;
-        align-items: flex-start;
+    .header-top h1 {
+        font-size: 2.2rem;
     }
 
-    .hero-metrics {
-        width: 100%;
+    .results-container {
+        padding: 1.5rem 1rem;
+        min-height: auto;
+    }
+
+    .results-card {
+        padding: 1.5rem;
+        border-radius: 24px;
+    }
+
+    .results-header {
         flex-direction: column;
+        text-align: center;
         gap: 1rem;
     }
 
-    .hero-metric-pill {
-        min-width: 0;
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
     }
 
-    .analysis-item {
+    .review-item {
         flex-direction: column;
-        gap: 1rem;
+        padding: 1.25rem;
     }
 
-    .analysis-item-header {
+    .review-item-header {
         flex-direction: column;
+        gap: 0.75rem;
     }
 
-    .analysis-answers-grid {
+    .review-answers-grid {
         grid-template-columns: 1fr;
     }
 
     .history-modal-footer {
-        flex-direction: column;
         padding: 1rem;
+    }
+
+    .btn-primary {
+        width: 100%;
     }
 }

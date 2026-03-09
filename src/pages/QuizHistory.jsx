@@ -150,34 +150,69 @@ const QuizHistory = () => {
                 isOpen={!!selectedResult}
                 onClose={() => setSelectedResult(null)}
                 isFullScreen={true}
-                title="Session Analysis"
+                title={selectedResult?.quizTitle || "Session Analysis"}
             >
                 {selectedResult && (
                     <div className="history-detail-view animate-fade-in">
-                        <div className="detail-hero-section">
+                        <div className="results-container">
+                            {/* Background Glows for depth */}
                             <div className="bg-glow-purple"></div>
                             <div className="bg-glow-pink"></div>
 
-                            <div className="detail-hero-card">
-                                <div className="detail-hero-content">
-                                    <div className="hero-main-info">
-                                        <h1>{selectedResult.quizTitle}</h1>
-                                        <p><Calendar size={16} /> {formatDate(selectedResult.timestamp)} at {selectedResult.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                            <div className="results-card">
+                                <header className="results-header">
+                                    <div className="icon-badge">
+                                        <Award size={32} />
                                     </div>
+                                    <div className="header-text">
+                                        <h1>{selectedResult.accuracy > 70 ? "Excellent Work!" : "Keep Pushing!"}</h1>
 
-                                    <div className="hero-metrics">
-                                        <div className="hero-metric-pill">
-                                            <Award size={20} />
-                                            <div className="metric-data">
-                                                <span className="label">Full Score</span>
-                                                <span className="value">{selectedResult.score}/{selectedResult.totalQuestions}</span>
+                                    </div>
+                                </header>
+
+                                <div className="hero-content">
+                                    {/* Left Side: The Score Visual */}
+                                    <div className="score-visualization">
+                                        <div className="progress-ring-wrapper">
+                                            <svg viewBox="0 0 120 120">
+                                                <defs>
+                                                    <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                        <stop offset="0%" stopColor="#6366f1" />
+                                                        <stop offset="50%" stopColor="#a855f7" />
+                                                        <stop offset="100%" stopColor="#ec4899" />
+                                                    </linearGradient>
+                                                </defs>
+                                                <circle className="ring-track" cx="60" cy="60" r="54" />
+                                                <circle
+                                                    className="ring-progress"
+                                                    cx="60" cy="60" r="54"
+                                                    strokeDasharray="339.29"
+                                                    style={{ strokeDashoffset: 339.29 - (339.29 * (selectedResult.score / selectedResult.totalQuestions)) }}
+                                                />
+                                            </svg>
+                                            <div className="score-display">
+                                                <span className="current">{selectedResult.score}</span>
+                                                <div className="divider"></div>
+                                                <span className="total">{selectedResult.totalQuestions}</span>
                                             </div>
                                         </div>
-                                        <div className="hero-metric-pill">
+                                    </div>
+
+                                    {/* Right Side: The Stats */}
+                                    <div className="metrics-column">
+                                        <div className="metric-pill">
                                             <Target size={20} />
                                             <div className="metric-data">
                                                 <span className="label">Accuracy</span>
                                                 <span className="value">{selectedResult.accuracy}%</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="metric-pill">
+                                            <Clock size={20} />
+                                            <div className="metric-data">
+                                                <span className="label">Time</span>
+                                                <span className="value">{selectedResult.duration}s</span>
                                             </div>
                                         </div>
                                     </div>
@@ -185,36 +220,35 @@ const QuizHistory = () => {
                             </div>
                         </div>
 
-                        <div className="detail-analysis-section">
-                            <div className="analysis-header">
+                        <div className="performance-review">
+                            <div className="review-header-section">
                                 <h3><BarChart3 size={24} /> Performance Analysis</h3>
-                                <p>Deep dive into your session results</p>
+                                <p>Review your answers and learn from the results</p>
                             </div>
 
-                            <div className="analysis-list">
+                            <div className="review-list">
                                 {Array.isArray(selectedResult.questions) ? (
                                     selectedResult.questions.map((q, idx) => {
-                                        const userAns = selectedResult.selectedAnswers?.[idx];
-                                        const isCorrect = userAns === q.correctAnswer;
+                                        const isCorrect = selectedResult.selectedAnswers?.[idx] === q.correctAnswer;
                                         return (
                                             <div
                                                 key={idx}
-                                                className={`analysis-item ${isCorrect ? 'is-correct' : 'is-incorrect'}`}
+                                                className={`review-item ${isCorrect ? 'is-correct' : 'is-incorrect'}`}
                                                 style={{ animationDelay: `${idx * 0.1}s` }}
                                             >
-                                                <div className="analysis-item-number">
+                                                <div className="review-item-number">
                                                     <span>{idx + 1}</span>
                                                 </div>
-                                                <div className="analysis-item-body">
-                                                    <div className="analysis-item-header">
-                                                        <p className="analysis-question">{q.question}</p>
+                                                <div className="review-item-body">
+                                                    <div className="review-item-header">
+                                                        <p className="review-question">{q.question}</p>
                                                         <div className={`status-badge ${isCorrect ? 'correct' : 'incorrect'}`}>
                                                             {isCorrect ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
                                                             <span>{isCorrect ? 'Correct' : 'Incorrect'}</span>
                                                         </div>
                                                     </div>
 
-                                                    <div className="analysis-answers-grid">
+                                                    <div className="review-answers-grid">
                                                         <div className="answer-pill correct">
                                                             <span className="label">Correct Answer</span>
                                                             <span className="value">{q.options[q.correctAnswer]}</span>
@@ -222,7 +256,7 @@ const QuizHistory = () => {
                                                         {!isCorrect && (
                                                             <div className="answer-pill yours">
                                                                 <span className="label">Your Choice</span>
-                                                                <span className="value">{userAns !== undefined && userAns !== null ? q.options[userAns] : 'Skipped'}</span>
+                                                                <span className="value">{q.options[selectedResult.selectedAnswers?.[idx]] || 'Skipped'}</span>
                                                             </div>
                                                         )}
                                                     </div>
