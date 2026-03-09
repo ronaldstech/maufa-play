@@ -8,6 +8,8 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, googleProvider, db } from '../services/firebase';
+import LoadingScreen from '../components/LoadingScreen';
+
 
 const AuthContext = createContext();
 
@@ -108,7 +110,8 @@ export function AuthProvider({ children }) {
 
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {loading ? <LoadingScreen /> : children}
         </AuthContext.Provider>
     );
+
 }
