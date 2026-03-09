@@ -104,7 +104,7 @@ const QuizModalPlay = () => {
     const progress = ((currentQuestion + 1) / questions.length) * 100;
 
     return (
-        <Modal isOpen={isQuizModalOpen} onClose={closeQuiz} maxWidth="900px">
+        <Modal isOpen={isQuizModalOpen} onClose={closeQuiz} isFullScreen={true}>
             <div className={`quiz-modal-container ${showResults ? 'results-view' : ''}`}>
                 {!showResults ? (
                     <div className="quiz-play-flow">

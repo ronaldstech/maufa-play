@@ -23,6 +23,20 @@
     position: relative;
     overflow: hidden;
     backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+}
+
+.modal-container.is-full-screen {
+    max-width: none !important;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+    max-height: none;
+}
+
+.modal-overlay:has(.is-full-screen) {
+    padding: 0;
 }
 
 .modal-header {

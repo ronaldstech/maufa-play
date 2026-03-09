@@ -101,17 +101,6 @@ const GameSetup = () => {
                         <p>{error}</p>
                     </div>
                 )}
-
-                <div className="setup-footer animate-fade-in-up delay-3">
-                    <button
-                        className={`btn-primary continue-btn ${!selectedSource ? 'disabled' : ''}`}
-                        onClick={handleContinue}
-                        disabled={!selectedSource}
-                    >
-                        Continue to Play
-                        <div className="btn-glow"></div>
-                    </button>
-                </div>
             </div>
         </div>
     );
