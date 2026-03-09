@@ -132,7 +132,12 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
         if (isQuiz) {
             try {
                 // Return parsed JSON for quizzes
-                return JSON.parse(content);
+                const parsed = JSON.parse(content);
+                // Handle case where AI wraps array in an object (common with json_object mode)
+                if (parsed.questions && Array.isArray(parsed.questions)) return parsed.questions;
+                if (parsed.data && Array.isArray(parsed.data)) return parsed.data;
+                if (Array.isArray(parsed)) return parsed;
+                return [parsed]; // Fallback
             } catch (e) {
                 // Fallback for weird AI formatting
                 const jsonMatch = content.match(/\[[\s\S]*\]/);

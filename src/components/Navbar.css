@@ -83,6 +83,9 @@
 .logout-btn {
     padding: 0.4rem 1rem;
     font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .mobile-actions {
@@ -115,6 +118,9 @@
     font-weight: 500;
     transition: all 0.3s ease;
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
 }
 
 .nav-link:hover {
@@ -255,6 +261,12 @@
 
     .nav-link::after {
         display: none;
+    }
+
+    .nav-links .nav-link {
+        width: 100%;
+        padding: 0.5rem 0;
+        font-size: 1.1rem;
     }
 
     .desktop-actions {

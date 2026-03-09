@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, Home, Zap, Gamepad2, History, Info, LogOut } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -49,9 +49,17 @@ const Navbar = () => {
                 </Link>
 
                 <div className={`nav-links ${isMobileMenuOpen ? 'active' : ''}`}>
-                    <Link to="/#features" className={`nav-link ${isActive('/#features') ? 'active-link' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>Features</Link>
-                    <Link to="/games" className={`nav-link ${isActive('/games') ? 'active-link' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>AI Games</Link>
-                    <Link to="/#about" className={`nav-link ${isActive('/#about') ? 'active-link' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
+                    <Link to="/" className={`nav-link ${isActive('/') ? 'active-link' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+                        <Home size={18} /> <span>Home</span>
+                    </Link>
+                    <Link to="/games" className={`nav-link ${isActive('/games') ? 'active-link' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+                        <Gamepad2 size={18} /> <span>AI Games</span>
+                    </Link>
+                    {currentUser && (
+                        <Link to="/history" className={`nav-link ${isActive('/history') ? 'active-link' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+                            <History size={18} /> <span>My History</span>
+                        </Link>
+                    )}
 
                     {currentUser ? (
                         <div className="nav-user-actions mobile-actions">
@@ -65,7 +73,9 @@ const Navbar = () => {
                                 )}
                                 <span className="user-email">{userProfile?.displayName || currentUser.email.split('@')[0]}</span>
                             </div>
-                            <button onClick={handleLogout} className="btn-secondary logout-btn">Logout</button>
+                            <button onClick={handleLogout} className="btn-secondary logout-btn">
+                                <LogOut size={16} /> Logout
+                            </button>
                         </div>
                     ) : (
                         <div className="mobile-actions">
@@ -78,8 +88,6 @@ const Navbar = () => {
                 <div className="nav-actions">
                     {currentUser ? (
                         <div className="nav-user-actions desktop-actions">
-                            <Link to="/games" className={`nav-link ${isActive('/games') ? 'active-link' : ''}`}>AI Games</Link>
-                            <Link to="/history" className={`nav-link ${isActive('/history') ? 'active-link' : ''}`}>My History</Link>
                             <div className="user-profile">
                                 {userProfile?.photoURL ? (
                                     <img src={userProfile.photoURL} alt="Avatar" className="user-avatar" />
@@ -90,7 +98,9 @@ const Navbar = () => {
                                 )}
                                 <span className="user-email">{userProfile?.displayName || currentUser.email.split('@')[0]}</span>
                             </div>
-                            <button onClick={handleLogout} className="btn-secondary logout-btn">Logout</button>
+                            <button onClick={handleLogout} className="btn-secondary logout-btn">
+                                <LogOut size={16} /> Logout
+                            </button>
                         </div>
                     ) : (
                         <div className="desktop-actions">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../services/firebase';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import {
     History,
@@ -27,31 +27,28 @@ const QuizHistory = () => {
     const [selectedResult, setSelectedResult] = useState(null);
 
     useEffect(() => {
-        const fetchHistory = async () => {
-            if (!currentUser) return;
+        if (!currentUser) return;
 
-            setLoading(true);
-            try {
-                const q = query(
-                    collection(db, 'quiz_results'),
-                    where('userId', '==', currentUser.uid),
-                    orderBy('timestamp', 'desc')
-                );
+        setLoading(true);
+        const q = query(
+            collection(db, 'quiz_results'),
+            where('userId', '==', currentUser.uid),
+            orderBy('timestamp', 'desc')
+        );
 
-                const querySnapshot = await getDocs(q);
-                const historyData = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setResults(historyData);
-            } catch (error) {
-                console.error("Error fetching history:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const historyData = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setResults(historyData);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching history:", error);
+            setLoading(false);
+        });
 
-        fetchHistory();
+        return () => unsubscribe();
     }, [currentUser]);
 
     const formatDate = (timestamp) => {
@@ -172,32 +169,36 @@ const QuizHistory = () => {
                         <div className="review-section">
                             <h3><BrainCircuit size={20} /> Deep Review</h3>
                             <div className="review-list">
-                                {selectedResult.questions?.map((q, idx) => {
-                                    const userAns = selectedResult.selectedAnswers?.[idx];
-                                    const isCorrect = userAns === q.correctAnswer;
+                                {Array.isArray(selectedResult.questions) ? (
+                                    selectedResult.questions.map((q, idx) => {
+                                        const userAns = selectedResult.selectedAnswers?.[idx];
+                                        const isCorrect = userAns === q.correctAnswer;
 
-                                    return (
-                                        <div key={idx} className={`review-item ${isCorrect ? 'correct' : 'incorrect'}`}>
-                                            <div className="q-header">
-                                                <span className="q-num">Question {idx + 1}</span>
-                                                {isCorrect ? <CheckCircle2 size={18} className="text-success" /> : <XCircle size={18} className="text-error" />}
-                                            </div>
-                                            <p className="q-text">{q.question}</p>
-                                            <div className="ans-comparison">
-                                                <div className="ans-row correct-ans">
-                                                    <span className="label">Correct Answer:</span>
-                                                    <span className="value">{q.options[q.correctAnswer]}</span>
+                                        return (
+                                            <div key={idx} className={`review-item ${isCorrect ? 'correct' : 'incorrect'}`}>
+                                                <div className="q-header">
+                                                    <span className="q-num">Question {idx + 1}</span>
+                                                    {isCorrect ? <CheckCircle2 size={18} className="text-success" /> : <XCircle size={18} className="text-error" />}
                                                 </div>
-                                                {!isCorrect && (
-                                                    <div className="ans-row user-ans">
-                                                        <span className="label">Your Answer:</span>
-                                                        <span className="value">{userAns !== undefined && userAns !== null ? q.options[userAns] : 'Skipped'}</span>
+                                                <p className="q-text">{q.question}</p>
+                                                <div className="ans-comparison">
+                                                    <div className="ans-row correct-ans">
+                                                        <span className="label">Correct Answer:</span>
+                                                        <span className="value">{q.options ? q.options[q.correctAnswer] : 'N/A'}</span>
                                                     </div>
-                                                )}
+                                                    {!isCorrect && q.options && (
+                                                        <div className="ans-row user-ans">
+                                                            <span className="label">Your Answer:</span>
+                                                            <span className="value">{userAns !== undefined && userAns !== null ? q.options[userAns] : 'Skipped'}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })
+                                ) : (
+                                    <p className="no-data-msg">Detailed review data is unavailable for this session.</p>
+                                )}
                             </div>
                         </div>
                     </div>
