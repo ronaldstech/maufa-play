@@ -6,17 +6,27 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
+    /* Allow scrolling whenever content exceeds viewport */
 }
+
 
 /* Glassmorphism 2.0 - Deeper, more refined */
 .quiz-play-flow {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 100%;
+    /* Changed from height: 100% to allow expansion */
     gap: 0;
     padding: 1.5rem;
     animation: modal-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 768px) {
+    .quiz-play-flow {
+        padding-bottom: 2rem;
+        /* Add some breathing room at the bottom for mobile */
+    }
 }
 
 @keyframes modal-slide-up {
@@ -127,12 +137,10 @@
 /* Question Section */
 .question-section {
     padding: 1.5rem 0;
-    flex: 1;
+    /* Removed flex: 1 to allow natural height growth during scroll */
     display: flex;
     flex-direction: column;
     justify-content: center;
-    overflow-y: auto;
-    /* Allow question area to scroll if REALLY long, but aim for no scroll */
 }
 
 .question-text {
@@ -626,6 +634,11 @@
 
 .review-card.correct .ans-val {
     color: #10b981;
+}
+
+.results-details {
+    padding-bottom: 10rem;
+    /* Ensure last cards aren't hidden by sticky footer */
 }
 
 .results-footer {
