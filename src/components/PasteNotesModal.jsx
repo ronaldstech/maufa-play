@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUI } from '../contexts/UIContext';
 import { useAuth } from '../contexts/AuthContext';
 import { analyzeContent, generateGameContent } from '../services/aiService';
 import { db } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { BrainCircuit, Sliders, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { BrainCircuit, Sliders, Sparkles } from 'lucide-react';
 import Modal from './Modal';
 import './PasteNotesModal.css';
 
 const PasteNotesModal = () => {
-    const { isPasteModalOpen, closePasteModal, openQuiz } = useUI();
+    const { isPasteModalOpen, closePasteModal, openQuiz, showAlert } = useUI();
     const { currentUser } = useAuth();
     // Modal-based quiz flow integration
 
@@ -17,12 +17,43 @@ const PasteNotesModal = () => {
     const [notes, setNotes] = useState('');
     const [analysis, setAnalysis] = useState(null);
     const [questionCount, setQuestionCount] = useState(5);
+    const [analysisProgress, setAnalysisProgress] = useState(0);
+    const [analysisPhase, setAnalysisPhase] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState(null);
 
+    // Simulated progress logic
+    useEffect(() => {
+        let interval;
+        if (isProcessing && (step === 2 || step === 4)) {
+            const phases = step === 4
+                ? ['Initializing generator...', 'Crafting questions...', 'Optimizing options...', 'Finalizing quiz...']
+                : ['Saving notes...', 'Analyzing content...', 'Mapping concepts...', 'Identifying key terms...'];
+
+            setAnalysisProgress(0);
+            setAnalysisPhase(phases[0]);
+
+            let currentProgress = 0;
+            interval = setInterval(() => {
+                currentProgress += Math.random() * 15;
+                if (currentProgress > 95) currentProgress = 95;
+
+                setAnalysisProgress(Math.floor(currentProgress));
+
+                const phaseIndex = Math.floor((currentProgress / 100) * phases.length);
+                if (phases[phaseIndex]) setAnalysisPhase(phases[phaseIndex]);
+            }, 600);
+        } else {
+            setAnalysisProgress(0);
+            setAnalysisPhase('');
+            clearInterval(interval);
+        }
+        return () => clearInterval(interval);
+    }, [isProcessing, step]);
+
     const handleAnalyze = async () => {
         if (!notes.trim() || notes.length < 50) {
-            setError("Please paste a bit more content (at least 50 characters) for a quality quiz.");
+            showAlert("Please paste a bit more content (at least 50 characters) for a quality quiz.", 'error');
             return;
         }
 
@@ -32,11 +63,12 @@ const PasteNotesModal = () => {
 
         try {
             const result = await analyzeContent(notes);
-            setAnalysis(result);
-            setQuestionCount(Math.min(5, result.maxQuestions));
+            const maxQ = Number(result.maxQuestions) || 15;
+            setAnalysis({ ...result, maxQuestions: maxQ });
+            setQuestionCount(Math.min(5, maxQ));
             setStep(3);
         } catch (err) {
-            setError(err.message);
+            showAlert(err.message, 'error');
             setStep(1);
         } finally {
             setIsProcessing(false);
@@ -50,6 +82,10 @@ const PasteNotesModal = () => {
 
         try {
             const questions = await generateGameContent("AI Quiz Generator", notes, { questionCount });
+
+            if (!currentUser) {
+                throw new Error("You must be logged in to save and play quizzes.");
+            }
 
             // Save to Firestore
             const quizRef = await addDoc(collection(db, 'quizzes'), {
@@ -73,7 +109,7 @@ const PasteNotesModal = () => {
                 quizId: quizRef.id
             });
         } catch (err) {
-            setError(err.message);
+            showAlert(err.message, 'error');
             setStep(3);
         } finally {
             setIsProcessing(false);
@@ -133,10 +169,19 @@ const PasteNotesModal = () => {
 
                     {step === 2 && (
                         <div className="analyzing-step animate-fade-in text-center">
-                            <div className="loading-visual">
-                                <Loader2 size={48} className="animate-spin" />
+                            <div className="analysis-progress-container">
+                                <div className="progress-stats">
+                                    <span className="progress-phase">{analysisPhase}</span>
+                                    <span className="progress-percentage">{analysisProgress}%</span>
+                                </div>
+                                <div className="progress-bar-wrapper">
+                                    <div
+                                        className="progress-bar-fill"
+                                        style={{ width: `${analysisProgress}%` }}
+                                    ></div>
+                                </div>
+                                <p className="analysis-subtext">Our AI is examining your notes to identify core learning objectives...</p>
                             </div>
-                            <p>Our AI is examining your notes to find the best question opportunities...</p>
                         </div>
                     )}
 
@@ -171,19 +216,22 @@ const PasteNotesModal = () => {
 
                     {step === 4 && (
                         <div className="analyzing-step animate-fade-in text-center">
-                            <div className="loading-visual">
-                                <Sparkles size={48} className="text-gradient-primary animate-pulse" />
+                            <div className="analysis-progress-container">
+                                <div className="progress-stats">
+                                    <span className="progress-phase">{analysisPhase}</span>
+                                    <span className="progress-percentage">{analysisProgress}%</span>
+                                </div>
+                                <div className="progress-bar-wrapper">
+                                    <div
+                                        className="progress-bar-fill"
+                                        style={{ width: `${analysisProgress}%` }}
+                                    ></div>
+                                </div>
+                                <p className="analysis-subtext">Generating {questionCount} challenging multiple choice questions from your content...</p>
                             </div>
-                            <p>Crafting {questionCount} multiple choice questions from your notes...</p>
                         </div>
                     )}
 
-                    {error && (
-                        <div className="error-toast animate-bounce-in">
-                            <AlertCircle size={18} />
-                            <span>{error}</span>
-                        </div>
-                    )}
                 </div>
 
                 <div className="paste-modal-footer">

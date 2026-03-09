@@ -23,12 +23,16 @@ export const analyzeContent = async (sourceData) => {
                 messages: [
                     {
                         role: 'system',
-                        content: `Analyze the following notes. 
-                        1. Determine the maximum number of unique, high-quality multiple choice questions (max 20) that can be realistically generated from this content without being repetitive.
-                        2. Identify a short, catchy title/topic for this content (max 5 words).
-                        3. Provide a 1-sentence summary.
+                        content: `Analyze the following notes and provide an intelligent assessment:
+                        1. maxQuestions: Based on the depth and unique concepts in the content, determine the maximum number of high-quality, non-repetitive multiple choice questions that can realistically be generated. 
+                           - For short notes (< 500 words), aim for 5-10.
+                           - For medium notes (500-1500 words), aim for 10-20.
+                           - For long materials (> 1500 words), suggest up to 30.
+                           - Ensure this number reflects the actual breadth of information.
+                        2. topic: A short, professional title for the content (max 5 words).
+                        3. summary: A concise 1-sentence overview of the main theme.
                         
-                        Respond ONLY in JSON format:
+                        Respond ONLY in valid JSON format:
                         {
                           "maxQuestions": number,
                           "topic": "string",

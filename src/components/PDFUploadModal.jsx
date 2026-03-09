@@ -10,8 +10,6 @@ import {
     Upload,
     X,
     CheckCircle2,
-    AlertCircle,
-    Loader2,
     BrainCircuit,
     Sliders,
     Sparkles
@@ -25,7 +23,7 @@ import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 pdfjsLib.GlobalWorkerOptions.workerSrc = PDFWorker;
 
 const PDFUploadModal = () => {
-    const { isPDFModalOpen, closePDFModal, openQuiz } = useUI();
+    const { isPDFModalOpen, closePDFModal, openQuiz, showAlert } = useUI();
     const { currentUser, userProfile } = useAuth();
     const fileInputRef = useRef(null);
 
@@ -34,8 +32,40 @@ const PDFUploadModal = () => {
     const [extractedText, setExtractedText] = useState('');
     const [analysis, setAnalysis] = useState(null);
     const [questionCount, setQuestionCount] = useState(5);
+    const [analysisProgress, setAnalysisProgress] = useState(0);
+    const [analysisPhase, setAnalysisPhase] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState(null);
+
+    // Simulated progress logic
+    React.useEffect(() => {
+        let interval;
+        if (isProcessing && (step === 2 || step === 3 || step === 5)) {
+            const phases = step === 5
+                ? ['Initializing generator...', 'Crafting questions...', 'Optimizing options...', 'Finalizing quiz...']
+                : ['Scanning document...', 'Extracting knowledge...', 'Mapping concepts...', 'Identifying key terms...'];
+
+            setAnalysisProgress(0);
+            setAnalysisPhase(phases[0]);
+
+            let currentProgress = 0;
+            interval = setInterval(() => {
+                currentProgress += Math.random() * 15;
+                if (currentProgress > 95) currentProgress = 95;
+
+                setAnalysisProgress(Math.floor(currentProgress));
+
+                // Update phases based on progress
+                const phaseIndex = Math.floor((currentProgress / 100) * phases.length);
+                if (phases[phaseIndex]) setAnalysisPhase(phases[phaseIndex]);
+            }, 600);
+        } else {
+            setAnalysisProgress(0);
+            setAnalysisPhase('');
+            clearInterval(interval);
+        }
+        return () => clearInterval(interval);
+    }, [isProcessing, step]);
 
     const handleFileSelect = (e) => {
         const selectedFile = e.target.files[0];
@@ -74,7 +104,7 @@ const PDFUploadModal = () => {
             handleAnalyze(fullText);
         } catch (err) {
             console.error("PDF Extraction error:", err);
-            setError(err.message || "Failed to extract text from PDF.");
+            showAlert(err.message || "Failed to extract text from PDF.", 'error');
             setStep(1);
             setIsProcessing(false);
         }
@@ -84,11 +114,12 @@ const PDFUploadModal = () => {
         setStep(3);
         try {
             const result = await analyzeContent(text);
-            setAnalysis(result);
-            setQuestionCount(Math.min(5, result.maxQuestions));
+            const maxQ = Number(result.maxQuestions) || 15;
+            setAnalysis({ ...result, maxQuestions: maxQ });
+            setQuestionCount(Math.min(5, maxQ));
             setStep(4);
         } catch (err) {
-            setError(err.message);
+            showAlert(err.message, 'error');
             setStep(1);
         } finally {
             setIsProcessing(false);
@@ -102,6 +133,10 @@ const PDFUploadModal = () => {
 
         try {
             const questions = await generateGameContent("AI Quiz Generator", extractedText, { questionCount });
+
+            if (!currentUser) {
+                throw new Error("You must be logged in to save and play quizzes.");
+            }
 
             // Save to Firestore
             const quizRef = await addDoc(collection(db, 'quizzes'), {
@@ -124,7 +159,7 @@ const PDFUploadModal = () => {
                 quizId: quizRef.id
             });
         } catch (err) {
-            setError(err.message);
+            showAlert(err.message, 'error');
             setStep(4);
         } finally {
             setIsProcessing(false);
@@ -205,11 +240,19 @@ const PDFUploadModal = () => {
 
                     {(step === 2 || step === 3) && (
                         <div className="processing-step animate-fade-in text-center">
-                            <div className="loading-visual">
-                                <Loader2 size={48} className="animate-spin" />
+                            <div className="analysis-progress-container">
+                                <div className="progress-stats">
+                                    <span className="progress-phase">{analysisPhase}</span>
+                                    <span className="progress-percentage">{analysisProgress}%</span>
+                                </div>
+                                <div className="progress-bar-wrapper">
+                                    <div
+                                        className="progress-bar-fill"
+                                        style={{ width: `${analysisProgress}%` }}
+                                    ></div>
+                                </div>
+                                <p className="analysis-subtext">Our AI is examining your document to find the best question opportunities...</p>
                             </div>
-                            <p>{step === 2 ? 'Extracting text from PDF...' : 'Analyzing content for quiz topics...'}</p>
-                            <span className="sub-text">This usually takes a few seconds.</span>
                         </div>
                     )}
 
@@ -243,19 +286,22 @@ const PDFUploadModal = () => {
 
                     {step === 5 && (
                         <div className="processing-step animate-fade-in text-center">
-                            <div className="loading-visual">
-                                <Sparkles size={48} className="text-gradient-primary animate-pulse" />
+                            <div className="analysis-progress-container">
+                                <div className="progress-stats">
+                                    <span className="progress-phase">{analysisPhase}</span>
+                                    <span className="progress-percentage">{analysisProgress}%</span>
+                                </div>
+                                <div className="progress-bar-wrapper">
+                                    <div
+                                        className="progress-bar-fill"
+                                        style={{ width: `${analysisProgress}%` }}
+                                    ></div>
+                                </div>
+                                <p className="analysis-subtext">Our AI is crafting {questionCount} high-quality questions based on your material...</p>
                             </div>
-                            <p>Crafting {questionCount} high-quality questions...</p>
                         </div>
                     )}
 
-                    {error && (
-                        <div className="error-toast animate-bounce-in">
-                            <AlertCircle size={18} />
-                            <span>{error}</span>
-                        </div>
-                    )}
                 </div>
 
                 <div className="pdf-modal-footer">
