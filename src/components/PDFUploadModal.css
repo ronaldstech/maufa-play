@@ -1,0 +1,199 @@
+.pdf-modal-content {
+    padding: 1rem;
+}
+
+.pdf-modal-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.pdf-modal-header h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-top: 1.5rem;
+}
+
+.upload-zone {
+    border: 2px dashed var(--glass-border);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.upload-zone:hover {
+    border-color: var(--accent-purple);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.upload-zone.has-file {
+    border-style: solid;
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.03);
+}
+
+.upload-icon-box {
+    width: 64px;
+    height: 64px;
+    background: rgba(124, 58, 237, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-purple);
+    margin-bottom: 0.5rem;
+}
+
+.upload-zone p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.upload-zone span {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+}
+
+.file-info-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    width: 100%;
+}
+
+.file-icon {
+    color: #10b981;
+}
+
+.file-name {
+    font-weight: 700;
+    font-size: 1rem;
+    max-width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-size {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+}
+
+.remove-file {
+    position: absolute;
+    top: -1.5rem;
+    right: -1rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: none;
+    color: #ef4444;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.remove-file:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.processing-step {
+    padding: 3rem 0;
+}
+
+.loading-visual {
+    margin-bottom: 1.5rem;
+    color: var(--accent-purple);
+}
+
+.processing-step p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.sub-text {
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+}
+
+.pdf-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--glass-border);
+}
+
+.icon-purple {
+    color: var(--accent-purple);
+}
+
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin-slow {
+    animation: spin-slow 8s linear infinite;
+}
+
+/* Animations from common styles */
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out both;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-bounce-in {
+    animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}

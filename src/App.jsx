@@ -15,6 +15,7 @@ import Signup from './pages/Signup';
 import PasteNotesModal from './components/PasteNotesModal';
 import Modal from './components/Modal';
 import CommunityModal from './components/CommunityModal';
+import PDFUploadModal from './components/PDFUploadModal';
 
 function AppContent() {
   const { isLoginOpen, closeLogin, isSignupOpen, closeSignup } = useUI();
@@ -52,6 +53,9 @@ function AppContent() {
 
       {/* Community Content Browser */}
       <CommunityModal />
+
+      {/* PDF Upload Modal */}
+      <PDFUploadModal />
     </div>
   );
 }

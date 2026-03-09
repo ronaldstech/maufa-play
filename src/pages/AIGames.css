@@ -27,105 +27,130 @@
 }
 
 .game-card {
+    position: relative;
     background: var(--card-bg);
     border: 1px solid var(--glass-border);
     border-radius: 20px;
-    padding: 2rem;
+    padding: 2.5rem 2rem;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    transition: all 0.3s ease;
+    align-items: center;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    overflow: hidden;
 }
 
-.game-card:hover {
+.game-card-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top, var(--game-color) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 0;
+}
+
+.game-card:hover:not(.coming-soon) {
     transform: translateY(-8px);
-    border-color: rgba(139, 92, 246, 0.3);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(139, 92, 246, 0.1);
+    border-color: var(--game-color);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 25px rgba(var(--game-color-rgb, 139, 92, 246), 0.15);
+}
+
+.game-card:hover .game-card-bg {
+    opacity: 0.15;
+}
+
+.game-card.coming-soon {
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: grayscale(0.5);
+}
+
+.coming-soon-badge {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.3rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    z-index: 2;
 }
 
 .game-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 2rem;
-    margin-bottom: 1.5rem;
-    background: rgba(255, 255, 255, 0.05);
+    margin-bottom: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--game-color);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 4px 12px var(--game-color));
 }
 
-/* Simple color variations for icons */
-.game-icon-blue {
-    color: #3b82f6;
-    background: rgba(59, 130, 246, 0.1);
-}
-
-.game-icon-purple {
-    color: #8b5cf6;
-    background: rgba(139, 92, 246, 0.1);
-}
-
-.game-icon-pink {
-    color: #ec4899;
-    background: rgba(236, 72, 153, 0.1);
-}
-
-.game-icon-green {
-    color: #10b981;
-    background: rgba(16, 185, 129, 0.1);
-}
-
-.game-icon-yellow {
-    color: #f59e0b;
-    background: rgba(245, 158, 11, 0.1);
-}
-
-.game-icon-red {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
-}
-
-.game-icon-indigo {
-    color: #6366f1;
-    background: rgba(99, 102, 241, 0.1);
-}
-
-.game-icon-teal {
-    color: #14b8a6;
-    background: rgba(20, 184, 166, 0.1);
+.game-card:hover .game-icon {
+    transform: scale(1.1) rotate(5deg);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 
 .game-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
     color: var(--text-primary);
+    position: relative;
+    z-index: 1;
 }
 
 .game-description {
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     line-height: 1.6;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     flex-grow: 1;
-    /* Pushes button to bottom */
+    position: relative;
+    z-index: 1;
 }
 
 .play-btn {
     width: 100%;
-    padding: 0.75rem;
+    padding: 1rem;
     margin-top: auto;
-    opacity: 0.8;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    position: relative;
+    z-index: 1;
+    border-radius: 12px;
 }
 
-.game-card:hover .play-btn {
-    opacity: 1;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+.play-btn.disabled {
+    opacity: 0.4;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-tertiary);
+    border-color: transparent;
+    cursor: not-allowed;
+}
+
+.game-card:not(.coming-soon):hover .play-btn:not(.disabled) {
+    background: var(--game-color);
+    color: white;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 @media (max-width: 768px) {
