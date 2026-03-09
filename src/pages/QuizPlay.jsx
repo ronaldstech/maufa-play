@@ -104,13 +104,12 @@ const QuizModalPlay = () => {
     const progress = ((currentQuestion + 1) / questions.length) * 100;
 
     return (
-        <Modal isOpen={isQuizModalOpen} onClose={closeQuiz} isFullScreen={true}>
+        <Modal isOpen={isQuizModalOpen} onClose={closeQuiz} isFullScreen={true} title={title}>
             <div className={`quiz-modal-container ${showResults ? 'results-view' : ''}`}>
                 {!showResults ? (
                     <div className="quiz-play-flow">
                         <div className="quiz-header">
                             <div className="quiz-info">
-                                <span className="title-tag">{title}</span>
                                 <div className="q-counter">
                                     <span className="current">{currentQuestion + 1}</span>
                                     <span className="divider">/</span>
@@ -164,83 +163,115 @@ const QuizModalPlay = () => {
                     </div>
                 ) : (
                     <div className="results-flow animate-fade-in">
-                        <div className="results-hero">
-                            <div className="congrats-content">
-                                <Award className="award-icon animate-bounce-gentle" size={80} />
-                                <h1>Outstanding Effort!</h1>
-                                <p className="topic-name">{title}</p>
-                            </div>
+                        <div className="results-container">
+                            {/* Background Glows for depth */}
+                            <div className="bg-glow-purple"></div>
+                            <div className="bg-glow-pink"></div>
 
-                            <div className="main-score">
-                                <div className="score-ring">
-                                    <svg viewBox="0 0 100 100">
-                                        <defs>
-                                            <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                <stop offset="0%" stopColor="#6366f1" />
-                                                <stop offset="50%" stopColor="#a855f7" />
-                                                <stop offset="100%" stopColor="#ec4899" />
-                                            </linearGradient>
-                                        </defs>
-                                        <circle className="ring-bg" cx="50" cy="50" r="45" />
-                                        <circle
-                                            className="ring-fill"
-                                            cx="50" cy="50" r="45"
-                                            style={{ '--offset': 283 - (283 * (score / questions.length)) }}
-                                        />
-                                    </svg>
-                                    <div className="score-text">
-                                        <span className="num">{score}</span>
-                                        <span className="total">of {questions.length}</span>
+                            <div className="results-card">
+                                <header className="results-header">
+                                    <div className="icon-badge">
+                                        <Award size={32} />
                                     </div>
-                                </div>
-                            </div>
+                                    <div className="header-text">
+                                        <h1>{score / questions.length > 0.7 ? "Excellent Work!" : "Keep Pushing!"}</h1>
+                                        <p>{title}</p>
+                                    </div>
+                                </header>
 
-                            <div className="stats-grid">
-                                <div className="stat-box">
-                                    <Target className="stat-icon" />
-                                    <div className="stat-info">
-                                        <span className="val">{Math.round((score / questions.length) * 100)}%</span>
-                                        <span className="lbl">Accuracy</span>
+                                <div className="hero-content">
+                                    {/* Left Side: The Score Visual */}
+                                    <div className="score-visualization">
+                                        <div className="progress-ring-wrapper">
+                                            <svg viewBox="0 0 120 120">
+                                                <defs>
+                                                    <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                        <stop offset="0%" stopColor="#6366f1" />
+                                                        <stop offset="50%" stopColor="#a855f7" />
+                                                        <stop offset="100%" stopColor="#ec4899" />
+                                                    </linearGradient>
+                                                </defs>
+                                                <circle className="ring-track" cx="60" cy="60" r="54" />
+                                                <circle
+                                                    className="ring-progress"
+                                                    cx="60" cy="60" r="54"
+                                                    strokeDasharray="339.29"
+                                                    style={{ strokeDashoffset: 339.29 - (339.29 * (score / questions.length)) }}
+                                                />
+                                            </svg>
+                                            <div className="score-display">
+                                                <span className="current">{score}</span>
+                                                <div className="divider"></div>
+                                                <span className="total">{questions.length}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="stat-box">
-                                    <Clock className="stat-icon" />
-                                    <div className="stat-info">
-                                        <span className="val">{duration}s</span>
-                                        <span className="lbl">Time Taken</span>
+
+                                    {/* Right Side: The Stats */}
+                                    <div className="metrics-column">
+                                        <div className="metric-pill">
+                                            <Target size={20} />
+                                            <div className="metric-data">
+                                                <span className="label">Accuracy</span>
+                                                <span className="value">{Math.round((score / questions.length) * 100)}%</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="metric-pill">
+                                            <Clock size={20} />
+                                            <div className="metric-data">
+                                                <span className="label">Time</span>
+                                                <span className="value">{duration}s</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="results-details">
-                            <h3><BarChart3 size={20} /> Performance Review</h3>
-                            <div className="review-scroll">
-                                {questions.map((q, idx) => (
-                                    <div
-                                        key={idx}
-                                        className={`review-card ${selectedAnswers[idx] === q.correctAnswer ? 'correct' : 'incorrect'}`}
-                                        style={{ animationDelay: `${idx * 0.1}s` }}
-                                    >
-                                        <div className="review-meta">
-                                            <span className="q-index">Question {idx + 1}</span>
-                                            {selectedAnswers[idx] === q.correctAnswer ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
-                                        </div>
-                                        <p className="q-content">{q.question}</p>
-                                        <div className="answer-summary">
-                                            <div className="ans-label">
-                                                Correct Answer
-                                                <span className="ans-val">{q.options[q.correctAnswer]}</span>
+                        <div className="performance-review">
+                            <div className="review-header-section">
+                                <h3><BarChart3 size={24} /> Performance Analysis</h3>
+                                <p>Review your answers and learn from the results</p>
+                            </div>
+
+                            <div className="review-list">
+                                {questions.map((q, idx) => {
+                                    const isCorrect = selectedAnswers[idx] === q.correctAnswer;
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`review-item ${isCorrect ? 'is-correct' : 'is-incorrect'}`}
+                                            style={{ animationDelay: `${idx * 0.1}s` }}
+                                        >
+                                            <div className="review-item-number">
+                                                <span>{idx + 1}</span>
                                             </div>
-                                            {selectedAnswers[idx] !== q.correctAnswer && (
-                                                <div className="ans-label yours">
-                                                    Your Answer
-                                                    <span className="ans-val">{q.options[selectedAnswers[idx]] || 'Skipped'}</span>
+                                            <div className="review-item-body">
+                                                <div className="review-item-header">
+                                                    <p className="review-question">{q.question}</p>
+                                                    <div className={`status-badge ${isCorrect ? 'correct' : 'incorrect'}`}>
+                                                        {isCorrect ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                                                        <span>{isCorrect ? 'Correct' : 'Incorrect'}</span>
+                                                    </div>
                                                 </div>
-                                            )}
+
+                                                <div className="review-answers-grid">
+                                                    <div className="answer-pill correct">
+                                                        <span className="label">Correct Answer</span>
+                                                        <span className="value">{q.options[q.correctAnswer]}</span>
+                                                    </div>
+                                                    {!isCorrect && (
+                                                        <div className="answer-pill yours">
+                                                            <span className="label">Your Choice</span>
+                                                            <span className="value">{q.options[selectedAnswers[idx]] || 'Skipped'}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 

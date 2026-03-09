@@ -33,6 +33,7 @@
     max-width: none !important;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     border-radius: 0;
     border: none;
     max-height: none;
@@ -53,12 +54,17 @@
 }
 
 .modal-header {
-    padding: 1.5rem 2rem;
+    padding: 1rem 2rem;
+    padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
     border-bottom: 1px solid var(--glass-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
+}
+
+.is-full-screen .modal-header {
+    padding-top: calc(1.5rem + env(safe-area-inset-top, 20px));
 }
 
 .modal-header h3 {
