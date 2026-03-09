@@ -77,9 +77,12 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
 
     const { questionCount = 5 } = options;
     const isQuiz = gameType === "AI Quiz Generator";
+    const isFlashcards = gameType === "AI Flashcard Battle";
 
-    const systemPrompt = isQuiz
-        ? `You are an expert academic quiz generator for MaufaLab. 
+    let systemPrompt = '';
+
+    if (isQuiz) {
+        systemPrompt = `You are an expert academic quiz generator for MaufaLab. 
            Your task is to analyze the user's notes and generate exactly ${questionCount} multiple choice questions.
            
            OUTPUT FORMAT:
@@ -97,13 +100,35 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
            Rules:
            1. Every question must have exactly 4 options.
            2. "correctAnswer" must be the 0-indexed integer of the correct option.
-           3. Ensure questions are diverse and cover the main points of the notes.`
-        : `You are an expert educational AI assistant for the MaufaLab platform. Your task is to generate perfectly structured academic content for a game called "${gameType}". 
+           3. Ensure questions are diverse and cover the main points of the notes.`;
+    } else if (isFlashcards) {
+        systemPrompt = `You are an expert academic tutor for MaufaLab. 
+           Your task is to analyze the user's notes and generate exactly ${questionCount} high-quality flashcards.
+           
+           Each flashcard should follow a "Front" (Concept/Term/Question) and "Back" (Answer/Definition/Explanation) format.
+           
+           OUTPUT FORMAT:
+           You must respond ONLY with a valid JSON array of objects. Do not include any markdown formatting, backticks, or extra text.
+           
+           JSON Structure:
+           [
+             {
+               "front": "Term or Concept name here?",
+               "back": "Detailed but concise definition or explanation."
+             }
+           ]
+           
+           Rules:
+           1. Ensure terms are significant to the content.
+           2. Keep the "back" informative but easy to read quickly.`;
+    } else {
+        systemPrompt = `You are an expert educational AI assistant for the MaufaLab platform. Your task is to generate perfectly structured academic content for a game called "${gameType}". 
         
            Guidelines:
            1. Extract key concepts, definitions, and facts from the user's provided notes.
            2. Format the output specifically for the "${gameType}" game mode format.
            3. Output your response in clean markdown.`;
+    }
 
     try {
         const response = await axios.post(
@@ -121,7 +146,7 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
                     }
                 ],
                 temperature: 0.7,
-                response_format: isQuiz ? { type: "json_object" } : undefined
+                response_format: (isQuiz || isFlashcards) ? { type: "json_object" } : undefined
             },
             {
                 headers: {
@@ -133,15 +158,44 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
 
         const content = response.data.choices[0].message.content;
 
-        if (isQuiz) {
+        if (isQuiz || isFlashcards) {
             try {
-                // Return parsed JSON for quizzes
+                // Return parsed JSON for structured games
                 const parsed = JSON.parse(content);
-                // Handle case where AI wraps array in an object (common with json_object mode)
-                if (parsed.questions && Array.isArray(parsed.questions)) return parsed.questions;
+                // Handle case where AI wraps array in an object
+                const arrayKey = isQuiz ? 'questions' : 'flashcards';
+                if (parsed[arrayKey] && Array.isArray(parsed[arrayKey])) return parsed[arrayKey];
+
+                // Extra fallback: check for common variations of keys
+                const alternativeKeys = isQuiz ? ['quiz', 'data', 'items'] : ['cards', 'deck', 'data', 'items'];
+                for (const key of alternativeKeys) {
+                    if (parsed[key] && Array.isArray(parsed[key])) return parsed[key];
+                }
+
                 if (parsed.data && Array.isArray(parsed.data)) return parsed.data;
                 if (Array.isArray(parsed)) return parsed;
-                return [parsed]; // Fallback
+
+                // Look for ANY array in the object
+                const firstArray = Object.values(parsed).find(val => Array.isArray(val));
+                if (firstArray) {
+                    // Standardize objects to { front, back } or { question, options, correctAnswer }
+                    return firstArray.map(item => {
+                        if (isQuiz) {
+                            return {
+                                question: item.question || item.q || '',
+                                options: item.options || item.choices || [],
+                                correctAnswer: typeof item.correctAnswer === 'number' ? item.correctAnswer : 0
+                            };
+                        } else {
+                            return {
+                                front: item.front || item.term || item.title || item.question || '',
+                                back: item.back || item.definition || item.answer || item.description || ''
+                            };
+                        }
+                    }).filter(item => isQuiz ? item.question : (item.front || item.back));
+                }
+
+                return []; // Fallback empty array
             } catch (e) {
                 // Fallback for weird AI formatting
                 const jsonMatch = content.match(/\[[\s\S]*\]/);

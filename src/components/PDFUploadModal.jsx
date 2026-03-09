@@ -23,9 +23,9 @@ import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 pdfjsLib.GlobalWorkerOptions.workerSrc = PDFWorker;
 
 const PDFUploadModal = () => {
-    const { isPDFModalOpen, closePDFModal, openQuiz, showAlert } = useUI();
+    const { isPDFModalOpen, closePDFModal, openQuiz, openFlashcards, selectedGameType, showAlert } = useUI();
     const { currentUser, userProfile } = useAuth();
-    const fileInputRef = useRef(null);
+    const isFlashcards = selectedGameType === "AI Flashcard Battle"; const fileInputRef = useRef(null);
 
     const [step, setStep] = useState(1); // 1: Select, 2: Extracting, 3: Analyzing, 4: Configure, 5: Generating
     const [file, setFile] = useState(null);
@@ -42,7 +42,7 @@ const PDFUploadModal = () => {
         let interval;
         if (isProcessing && (step === 2 || step === 3 || step === 5)) {
             const phases = step === 5
-                ? ['Initializing generator...', 'Crafting questions...', 'Optimizing options...', 'Finalizing quiz...']
+                ? ['Initializing generator...', `Crafting ${isFlashcards ? 'flashcards' : 'questions'}...`, 'Optimizing content...', `Finalizing ${isFlashcards ? 'deck' : 'quiz'}...`]
                 : ['Scanning document...', 'Extracting knowledge...', 'Mapping concepts...', 'Identifying key terms...'];
 
             setAnalysisProgress(0);
@@ -132,32 +132,43 @@ const PDFUploadModal = () => {
         setError(null);
 
         try {
-            const questions = await generateGameContent("AI Quiz Generator", extractedText, { questionCount });
+            const content = await generateGameContent(selectedGameType, extractedText, { questionCount });
 
             if (!currentUser) {
-                throw new Error("You must be logged in to save and play quizzes.");
+                throw new Error(`You must be logged in to save and play ${isFlashcards ? 'flashcards' : 'quizzes'}.`);
             }
 
+            const collectionName = isFlashcards ? 'flashcards' : 'quizzes';
+
             // Save to Firestore
-            const quizRef = await addDoc(collection(db, 'quizzes'), {
+            const gameRef = await addDoc(collection(db, collectionName), {
                 userId: currentUser.uid,
                 creatorName: userProfile?.displayName || currentUser.email.split('@')[0],
                 creatorAvatar: userProfile?.photoURL || null,
                 topic: analysis.topic,
                 summary: analysis.summary,
-                questions: questions,
+                [isFlashcards ? 'flashcards' : 'questions']: content,
                 sourceMaterial: "Extracted from PDF: " + file.name,
-                createdAt: serverTimestamp()
+                createdAt: serverTimestamp(),
+                gameType: selectedGameType
             });
 
             handleClose();
 
-            // Open the Quiz Modal
-            openQuiz({
-                questions,
-                title: analysis.topic,
-                quizId: quizRef.id
-            });
+            // Open the appropriate Modal
+            if (isFlashcards) {
+                openFlashcards({
+                    flashcards: content,
+                    title: analysis.topic,
+                    gameId: gameRef.id
+                });
+            } else {
+                openQuiz({
+                    questions: content,
+                    title: analysis.topic,
+                    quizId: gameRef.id
+                });
+            }
         } catch (err) {
             showAlert(err.message, 'error');
             setStep(4);
@@ -196,14 +207,14 @@ const PDFUploadModal = () => {
                     </div>
                     {step === 1 && <h2><Upload size={24} className="icon-purple" /> Upload Study Material</h2>}
                     {(step === 2 || step === 3) && <h2><BrainCircuit size={24} className="icon-purple animate-pulse" /> Processing Document</h2>}
-                    {step === 4 && <h2><Sliders size={24} className="icon-purple" /> configure Quiz</h2>}
-                    {step === 5 && <h2><Sparkles size={24} className="icon-purple animate-spin-slow" /> Generating Questions</h2>}
+                    {step === 4 && <h2><Sliders size={24} className="icon-purple" /> Configure {isFlashcards ? 'Deck' : 'Quiz'}</h2>}
+                    {step === 5 && <h2><Sparkles size={24} className="icon-purple animate-spin-slow" /> Generating {isFlashcards ? 'Flashcards' : 'Questions'}</h2>}
                 </div>
 
                 <div className="pdf-modal-body">
                     {step === 1 && (
                         <div className="upload-step animate-fade-in">
-                            <p className="step-desc">Upload your lecture notes, handouts, or text-based PDF. Our AI will scan the content to build your quiz.</p>
+                            <p className="step-desc">Upload your lecture notes, handouts, or text-based PDF. Our AI will scan the content to build your {isFlashcards ? 'flashcards' : 'quiz'}.</p>
 
                             <div
                                 className={`upload-zone ${file ? 'has-file' : ''}`}
@@ -265,7 +276,7 @@ const PDFUploadModal = () => {
 
                             <div className="slider-section">
                                 <div className="slider-header">
-                                    <label>Number of Questions</label>
+                                    <label>Number of {selectedGameType === 'flashcards' ? 'Flashcards' : 'Questions'}</label>
                                     <span className="count-badge">{questionCount}</span>
                                 </div>
                                 <input
@@ -316,7 +327,7 @@ const PDFUploadModal = () => {
                     )}
                     {step === 4 && (
                         <button className="btn-primary" onClick={handleGenerate} disabled={isProcessing}>
-                            Generate Quiz <Sparkles size={18} />
+                            Generate {isFlashcards ? 'Flashcards' : 'Quiz'} <Sparkles size={18} />
                             <div className="btn-glow"></div>
                         </button>
                     )}

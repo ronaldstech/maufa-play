@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, Type, GraduationCap, BrainCircuit, Globe, ClipboardType, Users, ScrollText, Loader2 } from 'lucide-react';
 import { useUI } from '../contexts/UIContext';
@@ -7,7 +7,7 @@ import './GameSetup.css';
 const GameSetup = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { openPasteModal, openCommunityModal, openPDFModal } = useUI();
+    const { openPasteModal, openCommunityModal, openPDFModal, setSelectedGameType } = useUI();
     const [selectedSource, setSelectedSource] = useState(null);
     const [error, setError] = useState(null);
 
@@ -36,16 +36,24 @@ const GameSetup = () => {
         return names[id] || 'AI Game';
     };
 
+    // Initialize game type in context when setup page loads
+    useEffect(() => {
+        const gameName = getGameName();
+        setSelectedGameType(gameName);
+    }, [id, setSelectedGameType]);
+
     const handleSourceSelect = (sourceId) => {
         const source = sources.find(s => s.id === sourceId);
         if (source?.comingSoon) return;
 
+        const currentGameName = getGameName();
+
         if (sourceId === 'paste') {
-            openPasteModal();
+            openPasteModal(currentGameName);
         } else if (sourceId === 'community') {
-            openCommunityModal();
+            openCommunityModal(currentGameName);
         } else if (sourceId === 'pdf') {
-            openPDFModal();
+            openPDFModal(currentGameName);
         } else {
             setSelectedSource(sourceId);
             setError(null);

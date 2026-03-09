@@ -14,68 +14,10 @@ export function UIProvider({ children }) {
     const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
     const [quizData, setQuizData] = useState(null);
+    const [isFlashcardModalOpen, setIsFlashcardModalOpen] = useState(false);
+    const [flashcardData, setFlashcardData] = useState(null);
+    const [selectedGameType, setSelectedGameType] = useState('AI Quiz Generator');
     const [alerts, setAlerts] = useState([]);
-
-    const openLogin = () => {
-        setIsLoginOpen(true);
-        setIsSignupOpen(false);
-        setIsPasteModalOpen(false);
-        setIsQuizModalOpen(false);
-    };
-
-    const closeLogin = () => setIsLoginOpen(false);
-
-    const openSignup = () => {
-        setIsSignupOpen(true);
-        setIsLoginOpen(false);
-        setIsPasteModalOpen(false);
-        setIsQuizModalOpen(false);
-    };
-
-    const closeSignup = () => setIsSignupOpen(false);
-
-    const openPasteModal = () => {
-        setIsPasteModalOpen(true);
-        setIsLoginOpen(false);
-        setIsSignupOpen(false);
-        setIsQuizModalOpen(false);
-    };
-
-    const closePasteModal = () => setIsPasteModalOpen(false);
-
-    const openCommunityModal = () => {
-        setIsCommunityModalOpen(true);
-        setIsLoginOpen(false);
-        setIsSignupOpen(false);
-        setIsPasteModalOpen(false);
-        setIsQuizModalOpen(false);
-    };
-
-    const closeCommunityModal = () => setIsCommunityModalOpen(false);
-
-    const openPDFModal = () => {
-        setIsPDFModalOpen(true);
-        setIsLoginOpen(false);
-        setIsSignupOpen(false);
-        setIsPasteModalOpen(false);
-        setIsCommunityModalOpen(false);
-        setIsQuizModalOpen(false);
-    };
-
-    const closePDFModal = () => setIsPDFModalOpen(false);
-
-    const openQuiz = (data) => {
-        setQuizData(data);
-        setIsQuizModalOpen(true);
-        setIsLoginOpen(false);
-        setIsSignupOpen(false);
-        setIsPasteModalOpen(false);
-    };
-
-    const closeQuiz = () => {
-        setIsQuizModalOpen(false);
-        setQuizData(null);
-    };
 
     const switchToSignup = () => {
         setIsLoginOpen(false);
@@ -96,6 +38,90 @@ export function UIProvider({ children }) {
         setAlerts(prev => prev.filter(alert => alert.id !== id));
     };
 
+    const openLogin = () => {
+        setIsLoginOpen(true);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsQuizModalOpen(false);
+        setIsFlashcardModalOpen(false);
+    };
+
+    const closeLogin = () => setIsLoginOpen(false);
+
+    const openSignup = () => {
+        setIsSignupOpen(true);
+        setIsLoginOpen(false);
+        setIsPasteModalOpen(false);
+        setIsQuizModalOpen(false);
+        setIsFlashcardModalOpen(false);
+    };
+
+    const closeSignup = () => setIsSignupOpen(false);
+
+    const openPasteModal = (gameType) => {
+        if (gameType) setSelectedGameType(gameType);
+        setIsPasteModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsQuizModalOpen(false);
+        setIsFlashcardModalOpen(false);
+    };
+
+    const closePasteModal = () => setIsPasteModalOpen(false);
+
+    const openCommunityModal = (gameType) => {
+        if (gameType) setSelectedGameType(gameType);
+        setIsCommunityModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsQuizModalOpen(false);
+        setIsFlashcardModalOpen(false);
+    };
+
+    const closeCommunityModal = () => setIsCommunityModalOpen(false);
+
+    const openPDFModal = (gameType) => {
+        if (gameType) setSelectedGameType(gameType);
+        setIsPDFModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsCommunityModalOpen(false);
+        setIsQuizModalOpen(false);
+        setIsFlashcardModalOpen(false);
+    };
+
+    const closePDFModal = () => setIsPDFModalOpen(false);
+
+    const openQuiz = (data) => {
+        setQuizData(data);
+        setIsQuizModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsFlashcardModalOpen(false);
+    };
+
+    const closeQuiz = () => {
+        setIsQuizModalOpen(false);
+        setQuizData(null);
+    };
+
+    const openFlashcards = (data) => {
+        setFlashcardData(data);
+        setIsFlashcardModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsQuizModalOpen(false);
+    };
+
+    const closeFlashcards = () => {
+        setIsFlashcardModalOpen(false);
+        setFlashcardData(null);
+    };
+
     const value = {
         isLoginOpen,
         isSignupOpen,
@@ -103,7 +129,11 @@ export function UIProvider({ children }) {
         isCommunityModalOpen,
         isPDFModalOpen,
         isQuizModalOpen,
+        isFlashcardModalOpen,
         quizData,
+        flashcardData,
+        selectedGameType,
+        setSelectedGameType,
         openLogin,
         closeLogin,
         openSignup,
@@ -116,6 +146,8 @@ export function UIProvider({ children }) {
         closePDFModal,
         openQuiz,
         closeQuiz,
+        openFlashcards,
+        closeFlashcards,
         switchToSignup,
         switchToLogin,
         alerts,

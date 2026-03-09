@@ -9,10 +9,9 @@ import Modal from './Modal';
 import './PasteNotesModal.css';
 
 const PasteNotesModal = () => {
-    const { isPasteModalOpen, closePasteModal, openQuiz, showAlert } = useUI();
+    const { isPasteModalOpen, closePasteModal, openQuiz, openFlashcards, selectedGameType, userProfile, showAlert } = useUI();
     const { currentUser } = useAuth();
-    // Modal-based quiz flow integration
-
+    const isFlashcards = selectedGameType === "AI Flashcard Battle";
     const [step, setStep] = useState(1); // 1: Paste, 2: Analyzing, 3: Slider/Configure, 4: Generating
     const [notes, setNotes] = useState('');
     const [analysis, setAnalysis] = useState(null);
@@ -27,7 +26,7 @@ const PasteNotesModal = () => {
         let interval;
         if (isProcessing && (step === 2 || step === 4)) {
             const phases = step === 4
-                ? ['Initializing generator...', 'Crafting questions...', 'Optimizing options...', 'Finalizing quiz...']
+                ? ['Initializing generator...', `Crafting ${isFlashcards ? 'flashcards' : 'questions'}...`, 'Optimizing content...', `Finalizing ${isFlashcards ? 'cards' : 'quiz'}...`]
                 : ['Saving notes...', 'Analyzing content...', 'Mapping concepts...', 'Identifying key terms...'];
 
             setAnalysisProgress(0);
@@ -53,7 +52,7 @@ const PasteNotesModal = () => {
 
     const handleAnalyze = async () => {
         if (!notes.trim() || notes.length < 50) {
-            showAlert("Please paste a bit more content (at least 50 characters) for a quality quiz.", 'error');
+            showAlert(`Please paste a bit more content (at least 50 characters) for a quality ${isFlashcards ? 'flashcard set' : 'quiz'}.`, 'error');
             return;
         }
 
@@ -81,33 +80,46 @@ const PasteNotesModal = () => {
         setError(null);
 
         try {
-            const questions = await generateGameContent("AI Quiz Generator", notes, { questionCount });
+            const content = await generateGameContent(selectedGameType, notes, { questionCount });
 
             if (!currentUser) {
-                throw new Error("You must be logged in to save and play quizzes.");
+                throw new Error(`You must be logged in to save and play ${isFlashcards ? 'flashcards' : 'quizzes'}.`);
             }
 
-            // Save to Firestore
-            const quizRef = await addDoc(collection(db, 'quizzes'), {
+            // Save to Firestore - using a unified collection or keeping separate? 
+            // The prompt says "Save to 'quizzes'" but maybe we should use 'flashcards' or a unified 'game_sessions'
+            // For now, let's keep it consistent with the existing structure but use a 'type' field
+            const collectionName = isFlashcards ? 'flashcards' : 'quizzes';
+
+            const gameRef = await addDoc(collection(db, collectionName), {
                 userId: currentUser.uid,
                 creatorName: userProfile?.displayName || currentUser.email.split('@')[0],
                 creatorAvatar: userProfile?.photoURL || null,
                 topic: analysis.topic,
                 summary: analysis.summary,
-                questions: questions,
+                [isFlashcards ? 'flashcards' : 'questions']: content,
                 sourceMaterial: notes.substring(0, 1000), // Save snippet
-                createdAt: serverTimestamp()
+                createdAt: serverTimestamp(),
+                gameType: selectedGameType
             });
 
             closePasteModal();
             resetState();
 
-            // Open the new Quiz Modal
-            openQuiz({
-                questions,
-                title: analysis.topic,
-                quizId: quizRef.id
-            });
+            // Open the new Game Modal
+            if (isFlashcards) {
+                openFlashcards({
+                    flashcards: content,
+                    title: analysis.topic,
+                    gameId: gameRef.id
+                });
+            } else {
+                openQuiz({
+                    questions: content,
+                    title: analysis.topic,
+                    quizId: gameRef.id
+                });
+            }
         } catch (err) {
             showAlert(err.message, 'error');
             setStep(3);
@@ -143,10 +155,10 @@ const PasteNotesModal = () => {
                         <div className={`line ${step >= 4 ? 'active' : ''}`}></div>
                         <span className={step >= 4 ? 'active' : ''}>3</span>
                     </div>
-                    {step === 1 && <h2><Sparkles className="icon-sparkle" /> Create Your Quiz</h2>}
+                    {step === 1 && <h2><Sparkles className="icon-sparkle" /> Create {isFlashcards ? 'Flashcards' : 'Quiz'}</h2>}
                     {step === 2 && <h2><BrainCircuit className="icon-brain animate-pulse" /> Analyzing Content</h2>}
-                    {step === 3 && <h2><Sliders className="icon-slider" /> Configure Quiz</h2>}
-                    {step === 4 && <h2><Sparkles className="icon-sparkle animate-spin-slow" /> Generating Questions</h2>}
+                    {step === 3 && <h2><Sliders className="icon-slider" /> Configure {isFlashcards ? 'Deck' : 'Quiz'}</h2>}
+                    {step === 4 && <h2><Sparkles className="icon-sparkle animate-spin-slow" /> Generating {isFlashcards ? 'Flashcards' : 'Questions'}</h2>}
                 </div>
 
                 <div className="paste-modal-body">
@@ -194,7 +206,7 @@ const PasteNotesModal = () => {
 
                             <div className="slider-section">
                                 <div className="slider-header">
-                                    <label>Number of Questions</label>
+                                    <label>Number of {isFlashcards ? 'Flashcards' : 'Questions'}</label>
                                     <span className="count-badge">{questionCount}</span>
                                 </div>
                                 <input
@@ -209,7 +221,7 @@ const PasteNotesModal = () => {
                                     <span>1</span>
                                     <span>Max: {analysis.maxQuestions}</span>
                                 </div>
-                                <p className="slider-hint">Based on your content, AI suggests up to {analysis.maxQuestions} questions.</p>
+                                <p className="slider-hint">Based on your content, AI suggests up to {analysis.maxQuestions} {isFlashcards ? 'cards' : 'questions'}.</p>
                             </div>
                         </div>
                     )}
@@ -227,7 +239,7 @@ const PasteNotesModal = () => {
                                         style={{ width: `${analysisProgress}%` }}
                                     ></div>
                                 </div>
-                                <p className="analysis-subtext">Generating {questionCount} challenging multiple choice questions from your content...</p>
+                                <p className="analysis-subtext">Generating {questionCount} {isFlashcards ? 'curated flashcards' : 'challenging multiple choice questions'} from your content...</p>
                             </div>
                         </div>
                     )}
@@ -246,7 +258,7 @@ const PasteNotesModal = () => {
                     )}
                     {step === 3 && (
                         <button className="btn-primary" onClick={handleGenerate} disabled={isProcessing}>
-                            Generate {questionCount} Questions <Sparkles size={18} />
+                            Generate {questionCount} {isFlashcards ? 'Flashcards' : 'Questions'} <Sparkles size={18} />
                             <div className="btn-glow"></div>
                         </button>
                     )}

@@ -1,0 +1,329 @@
+.flashcards-game-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    color: var(--text-primary);
+}
+
+.play-header {
+    margin-bottom: 3rem;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.counter {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.mastery-badge {
+    padding: 0.5rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-radius: 100px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.card-stage {
+    flex-grow: 1;
+    perspective: 1500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.flashcard {
+    width: 600px;
+    height: 400px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.1s ease;
+}
+
+.flashcard:active {
+    transform: scale(0.98);
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.flashcard.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 3rem;
+    border-radius: 32px;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    justify-content: center;
+    align-items: center;
+}
+
+.card-face::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(600px circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.06), transparent 40%);
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(236, 72, 153, 0.05));
+    border-color: rgba(139, 92, 246, 0.2);
+}
+
+.card-label {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-tertiary);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+}
+
+.card-text {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.card-footer {
+    position: absolute;
+    bottom: 2rem;
+    left: 2rem;
+    right: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-tertiary);
+}
+
+.hint-text {
+    font-size: 0.85rem;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.game-nav-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 2rem;
+}
+
+.nav-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover:not(.disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+    border-color: var(--text-secondary);
+}
+
+.nav-btn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1.5rem;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.btn-review,
+.btn-mastered {
+    padding: 1rem 2rem;
+    border-radius: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.btn-review {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.btn-review:hover {
+    background: #f59e0b;
+    color: white;
+    box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
+}
+
+.btn-mastered {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.btn-mastered:hover {
+    background: #10b981;
+    color: white;
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+}
+
+/* Results View */
+.flashcards-results {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.results-hero {
+    position: relative;
+    margin-bottom: 4rem;
+}
+
+.results-hero h1 {
+    font-size: 3rem;
+    margin: 1.5rem 0 0.5rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.results-hero p {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 2.5rem 1.5rem;
+    border-radius: 24px;
+    border: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-tertiary);
+}
+
+.results-actions {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .flashcard {
+        width: 100%;
+        height: 350px;
+    }
+
+    .card-text {
+        font-size: 1.5rem;
+    }
+
+    .game-nav-controls {
+        flex-direction: column-reverse;
+        gap: 1.5rem;
+    }
+
+    .action-buttons {
+        width: 100%;
+    }
+
+    .btn-review,
+    .btn-mastered {
+        flex: 1;
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

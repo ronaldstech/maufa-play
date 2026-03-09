@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
-import { Menu, X, User, Home, Zap, Gamepad2, History, Info, LogOut } from 'lucide-react';
+import { useRef } from 'react';
+import { Menu, X, User, Home, Zap, Gamepad2, History, Info, LogOut, ChevronDown, Settings } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -12,6 +13,21 @@ const Navbar = () => {
     const navigate = useNavigate();
     const { currentUser, userProfile, logout } = useAuth();
     const { openLogin, openSignup } = useUI();
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsProfileOpen(false);
+            }
+        };
+
+        if (isProfileOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isProfileOpen]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -63,19 +79,26 @@ const Navbar = () => {
 
                     {currentUser ? (
                         <div className="nav-user-actions mobile-actions">
-                            <div className="user-profile">
-                                {userProfile?.photoURL ? (
-                                    <img src={userProfile.photoURL} alt="Avatar" className="user-avatar" />
-                                ) : (
-                                    <div className="user-avatar-placeholder">
-                                        <User size={16} />
-                                    </div>
-                                )}
-                                <span className="user-email">{userProfile?.displayName || currentUser.email.split('@')[0]}</span>
+                            <div className="mobile-user-info">
+                                <div className="user-profile">
+                                    {userProfile?.photoURL ? (
+                                        <img src={userProfile.photoURL} alt="Avatar" className="user-avatar" />
+                                    ) : (
+                                        <div className="user-avatar-placeholder">
+                                            <User size={16} />
+                                        </div>
+                                    )}
+                                    <span className="user-email">{userProfile?.displayName || currentUser.email.split('@')[0]}</span>
+                                </div>
                             </div>
-                            <button onClick={handleLogout} className="btn-secondary logout-btn">
-                                <LogOut size={16} /> Logout
-                            </button>
+                            <div className="mobile-dropdown-links">
+                                <Link to="/profile" className="mobile-dropdown-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                    <User size={16} /> Profile
+                                </Link>
+                                <button onClick={handleLogout} className="mobile-dropdown-link logout">
+                                    <LogOut size={16} /> Logout
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div className="mobile-actions">
@@ -87,8 +110,11 @@ const Navbar = () => {
 
                 <div className="nav-actions">
                     {currentUser ? (
-                        <div className="nav-user-actions desktop-actions">
-                            <div className="user-profile">
+                        <div className="nav-user-actions desktop-actions" ref={dropdownRef}>
+                            <div
+                                className={`user-profile-trigger ${isProfileOpen ? 'active' : ''}`}
+                                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                            >
                                 {userProfile?.photoURL ? (
                                     <img src={userProfile.photoURL} alt="Avatar" className="user-avatar" />
                                 ) : (
@@ -97,10 +123,26 @@ const Navbar = () => {
                                     </div>
                                 )}
                                 <span className="user-email">{userProfile?.displayName || currentUser.email.split('@')[0]}</span>
+                                <ChevronDown size={14} className={`chevron-icon ${isProfileOpen ? 'rotate' : ''}`} />
                             </div>
-                            <button onClick={handleLogout} className="btn-secondary logout-btn">
-                                <LogOut size={16} /> Logout
-                            </button>
+
+                            {isProfileOpen && (
+                                <div className="profile-dropdown glass-panel animate-scale-in">
+                                    <Link to="/profile" className="dropdown-item" onClick={() => setIsProfileOpen(false)}>
+                                        <User size={16} />
+                                        <span>View Profile</span>
+                                    </Link>
+                                    <Link to="/settings" className="dropdown-item" onClick={() => setIsProfileOpen(false)}>
+                                        <Settings size={16} />
+                                        <span>Settings</span>
+                                    </Link>
+                                    <div className="dropdown-divider"></div>
+                                    <button onClick={handleLogout} className="dropdown-item logout-btn">
+                                        <LogOut size={16} />
+                                        <span>Sign Out</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="desktop-actions">
