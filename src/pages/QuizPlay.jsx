@@ -217,16 +217,26 @@ const QuizModalPlay = () => {
                             <h3><BarChart3 size={20} /> Performance Review</h3>
                             <div className="review-scroll">
                                 {questions.map((q, idx) => (
-                                    <div key={idx} className={`review-card ${selectedAnswers[idx] === q.correctAnswer ? 'correct' : 'incorrect'}`}>
+                                    <div
+                                        key={idx}
+                                        className={`review-card ${selectedAnswers[idx] === q.correctAnswer ? 'correct' : 'incorrect'}`}
+                                        style={{ animationDelay: `${idx * 0.1}s` }}
+                                    >
                                         <div className="review-meta">
                                             <span className="q-index">Question {idx + 1}</span>
-                                            {selectedAnswers[idx] === q.correctAnswer ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+                                            {selectedAnswers[idx] === q.correctAnswer ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
                                         </div>
                                         <p className="q-content">{q.question}</p>
                                         <div className="answer-summary">
-                                            <div className="ans-label">Correct: <span className="ans-val">{q.options[q.correctAnswer]}</span></div>
+                                            <div className="ans-label">
+                                                Correct Answer
+                                                <span className="ans-val">{q.options[q.correctAnswer]}</span>
+                                            </div>
                                             {selectedAnswers[idx] !== q.correctAnswer && (
-                                                <div className="ans-label yours">Yours: <span className="ans-val">{q.options[selectedAnswers[idx]] || 'Skipped'}</span></div>
+                                                <div className="ans-label yours">
+                                                    Your Answer
+                                                    <span className="ans-val">{q.options[selectedAnswers[idx]] || 'Skipped'}</span>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
