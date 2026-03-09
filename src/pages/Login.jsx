@@ -11,7 +11,7 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login, loginWithGoogle } = useAuth();
-    const { closeLogin, switchToSignup } = useUI();
+    const { closeLogin, switchToSignup, showAlert } = useUI();
     const navigate = useNavigate();
 
     async function handleSubmit(e) {
@@ -21,9 +21,12 @@ const Login = () => {
             setError('');
             setLoading(true);
             await login(email, password);
+            showAlert('Welcome back! Successfully logged in.', 'success');
             closeLogin();
         } catch (err) {
-            setError('Failed to log in: ' + err.message);
+            const message = err.message.includes('auth/') ? 'Invalid email or password' : err.message;
+            setError(message);
+            showAlert(message, 'error');
         } finally {
             setLoading(false);
         }
@@ -34,9 +37,11 @@ const Login = () => {
             setError('');
             setLoading(true);
             await loginWithGoogle();
+            showAlert('Successfully signed in with Google!', 'success');
             closeLogin();
         } catch (err) {
             setError('Failed to sign in with Google: ' + err.message);
+            showAlert('Google sign-in failed. Please try again.', 'error');
         } finally {
             setLoading(false);
         }
@@ -48,8 +53,6 @@ const Login = () => {
                 <h2>Welcome Back</h2>
                 <p>Sign in to continue your academic journey.</p>
             </div>
-
-            {error && <div className="auth-error">{error}</div>}
 
             <form onSubmit={handleSubmit} className="auth-form">
                 <div className="form-group">

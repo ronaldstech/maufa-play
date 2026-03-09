@@ -16,6 +16,7 @@ import PasteNotesModal from './components/PasteNotesModal';
 import Modal from './components/Modal';
 import CommunityModal from './components/CommunityModal';
 import PDFUploadModal from './components/PDFUploadModal';
+import ToastContainer from './components/ToastContainer';
 
 function AppContent() {
   const { isLoginOpen, closeLogin, isSignupOpen, closeSignup } = useUI();
@@ -56,6 +57,8 @@ function AppContent() {
 
       {/* PDF Upload Modal */}
       <PDFUploadModal />
+      {/* Toast Notifications */}
+      <ToastContainer />
     </div>
   );
 }

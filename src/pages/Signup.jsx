@@ -13,13 +13,14 @@ const Signup = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { signup, loginWithGoogle } = useAuth();
-    const { closeSignup, switchToLogin } = useUI();
+    const { closeSignup, switchToLogin, showAlert } = useUI();
     const navigate = useNavigate();
 
     async function handleSubmit(e) {
         e.preventDefault();
 
         if (password !== passwordConfirm) {
+            showAlert('Passwords do not match', 'error');
             return setError('Passwords do not match');
         }
 
@@ -27,9 +28,11 @@ const Signup = () => {
             setError('');
             setLoading(true);
             await signup(email, password, name);
+            showAlert('Account created successfully! Welcome to MaufaLab.', 'success');
             closeSignup();
         } catch (err) {
             setError('Failed to create an account: ' + err.message);
+            showAlert('Failed to create account. Please try again.', 'error');
         } finally {
             setLoading(false);
         }
@@ -40,9 +43,11 @@ const Signup = () => {
             setError('');
             setLoading(true);
             await loginWithGoogle();
+            showAlert('Successfully signed up with Google!', 'success');
             closeSignup();
         } catch (err) {
             setError('Failed to sign in with Google: ' + err.message);
+            showAlert('Google sign-up failed. Please try again.', 'error');
         } finally {
             setLoading(false);
         }

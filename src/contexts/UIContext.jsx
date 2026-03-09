@@ -14,6 +14,7 @@ export function UIProvider({ children }) {
     const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
     const [quizData, setQuizData] = useState(null);
+    const [alerts, setAlerts] = useState([]);
 
     const openLogin = () => {
         setIsLoginOpen(true);
@@ -86,6 +87,15 @@ export function UIProvider({ children }) {
         setIsLoginOpen(true);
     };
 
+    const showAlert = (message, type = 'info', duration = 3000) => {
+        const id = Math.random().toString(36).substr(2, 9);
+        setAlerts(prev => [...prev, { id, message, type, duration }]);
+    };
+
+    const removeAlert = (id) => {
+        setAlerts(prev => prev.filter(alert => alert.id !== id));
+    };
+
     const value = {
         isLoginOpen,
         isSignupOpen,
@@ -107,7 +117,10 @@ export function UIProvider({ children }) {
         openQuiz,
         closeQuiz,
         switchToSignup,
-        switchToLogin
+        switchToLogin,
+        alerts,
+        showAlert,
+        removeAlert
     };
 
     return (

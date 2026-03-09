@@ -19,11 +19,14 @@
     border-radius: 20px;
     width: 100%;
     max-width: 500px;
+    max-height: 90vh;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     position: relative;
     overflow: hidden;
     backdrop-filter: blur(20px);
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-container.is-full-screen {
@@ -55,6 +58,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -87,6 +91,29 @@
 
 .modal-content {
     padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Custom scrollbar for desktop */
+@media (min-width: 1024px) {
+    .modal-content::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .modal-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
 }
 
 @media (max-width: 480px) {
