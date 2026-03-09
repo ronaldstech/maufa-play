@@ -3,11 +3,11 @@
     padding: 0;
     color: var(--text-primary);
     position: relative;
-    height: 100%;
+    flex: 1;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    /* Allow scrolling whenever content exceeds viewport */
+    width: 100%;
 }
 
 
