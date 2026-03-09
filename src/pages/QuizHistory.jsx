@@ -14,9 +14,13 @@ import {
     XCircle,
     ArrowLeft,
     BrainCircuit,
-    Loader2
+    Loader2,
+    Sparkles,
+    Search,
+    Filter
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Modal from '../components/Modal';
 import './QuizHistory.css';
 
 const QuizHistory = () => {
@@ -25,6 +29,7 @@ const QuizHistory = () => {
     const [loading, setLoading] = useState(true);
     const [results, setResults] = useState([]);
     const [selectedResult, setSelectedResult] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         if (!currentUser) return;
@@ -57,153 +62,190 @@ const QuizHistory = () => {
         return new Intl.DateTimeFormat('en-GB', {
             day: '2-digit',
             month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric'
         }).format(date);
     };
 
-    if (loading) {
-        return (
-            <div className="history-loading">
-                <Loader2 className="animate-spin" size={48} />
-                <p>Retrieving your learning journey...</p>
-            </div>
-        );
-    }
+    const filteredResults = results.filter(r =>
+        r.quizTitle.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="history-page">
-            <div className="container">
-                <header className="history-header">
-                    <button className="back-btn" onClick={() => navigate('/games')}>
-                        <ArrowLeft size={20} /> Back to Games
-                    </button>
-                    <div className="header-content animate-fade-in-up">
-                        <h1>My <span className="text-gradient-primary">Quiz History</span></h1>
-                        <p>Review your past performances and master the topics you've explored.</p>
+            <div className="container history-container">
+                <header className="history-page-header">
+                    <div className="header-top">
+                        <button className="back-btn" onClick={() => navigate('/games')}>
+                            <ArrowLeft size={20} /> Back to Games
+                        </button>
+                        <h1>My <span className="text-gradient-primary">Learning Journey</span></h1>
+                        <p>Track your progress and master your topics.</p>
+                    </div>
+
+                    <div className="header-actions">
+                        <div className="search-box">
+                            <Search size={20} className="search-icon" />
+                            <input
+                                type="text"
+                                placeholder="Search sessions..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </header>
 
-                {!selectedResult ? (
-                    results.length > 0 ? (
-                        <div className="history-grid animate-fade-in">
-                            {results.map((result, index) => (
+                <div className="history-page-content">
+                    {loading ? (
+                        <div className="history-status-view">
+                            <Loader2 className="animate-spin" size={48} />
+                            <p>Loading your history...</p>
+                        </div>
+                    ) : filteredResults.length > 0 ? (
+                        <div className="history-items-grid">
+                            {filteredResults.map((result, index) => (
                                 <div
                                     key={result.id}
-                                    className="history-card-wrapper"
-                                    style={{ '--delay': `${index * 0.1}s` }}
+                                    className="history-item-card"
+                                    onClick={() => setSelectedResult(result)}
+                                    style={{ '--delay': `${index * 0.05}s` }}
                                 >
-                                    <div className="history-card" onClick={() => setSelectedResult(result)}>
-                                        <div className="card-top">
-                                            <div className="topic-info">
-                                                <h3>{result.quizTitle}</h3>
-                                                <div className="date">
-                                                    <Calendar size={14} /> {formatDate(result.timestamp)}
-                                                </div>
-                                            </div>
-                                            <div className={`score-badge ${result.accuracy >= 70 ? 'high' : result.accuracy >= 40 ? 'mid' : 'low'}`}>
-                                                {result.score}/{result.totalQuestions}
-                                            </div>
+                                    <div className="item-card-header">
+                                        <div className="item-icon">
+                                            <BrainCircuit size={24} />
                                         </div>
-
-                                        <div className="card-stats">
-                                            <div className="mini-stat">
-                                                <Target size={14} />
-                                                <span>{result.accuracy}% Accuracy</span>
-                                            </div>
-                                            <div className="mini-stat">
-                                                <Clock size={14} />
-                                                <span>{result.duration}s</span>
-                                            </div>
+                                        <div className={`item-score-badge ${result.accuracy >= 70 ? 'high' : 'low'}`}>
+                                            {result.score}/{result.totalQuestions}
                                         </div>
-
-                                        <div className="card-footer">
-                                            <span>Review Performance</span>
-                                            <ChevronRight size={18} />
-                                        </div>
-                                        <div className="card-glow"></div>
                                     </div>
+                                    <div className="item-card-body">
+                                        <h3>{result.quizTitle}</h3>
+                                        <div className="item-meta">
+                                            <span><Calendar size={14} /> {formatDate(result.timestamp)}</span>
+                                            <span><Clock size={14} /> {result.duration}s</span>
+                                        </div>
+                                    </div>
+                                    <div className="item-card-footer">
+                                        <span>View Analysis</span>
+                                        <ChevronRight size={16} />
+                                    </div>
+                                    <div className="card-glow"></div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="empty-history animate-fade-in">
-                            <History size={64} className="empty-icon" />
-                            <h2>No quizzes played yet</h2>
-                            <p>Challenge yourself by generating a quiz from your notes!</p>
-                            <button className="btn-primary" onClick={() => navigate('/games')}>
-                                Explore AI Games
-                            </button>
-                        </div>
-                    )
-                ) : (
-                    <div className="history-detail animate-slide-in">
-                        <button className="back-to-list" onClick={() => setSelectedResult(null)}>
-                            <ArrowLeft size={18} /> Back to History
-                        </button>
-
-                        <div className="detail-hero">
-                            <div className="detail-meta">
-                                <h2>{selectedResult.quizTitle}</h2>
-                                <p>{formatDate(selectedResult.timestamp)}</p>
-                            </div>
-                            <div className="hero-stats">
-                                <div className="stat-item">
-                                    <Award size={24} className="icon-award" />
-                                    <div className="s-info">
-                                        <span className="s-val">{selectedResult.score}/{selectedResult.totalQuestions}</span>
-                                        <span className="s-lbl">Final Score</span>
-                                    </div>
-                                </div>
-                                <div className="stat-item">
-                                    <BarChart3 size={24} className="icon-chart" />
-                                    <div className="s-info">
-                                        <span className="s-val">{selectedResult.accuracy}%</span>
-                                        <span className="s-lbl">Accuracy</span>
-                                    </div>
-                                </div>
+                        <div className="history-status-view">
+                            <div className="empty-state">
+                                <History size={64} />
+                                <h2>No sessions found</h2>
+                                <p>{searchTerm ? "Try adjusting your search" : "Start playing to build your history!"}</p>
                             </div>
                         </div>
+                    )}
+                </div>
+            </div>
 
-                        <div className="review-section">
-                            <h3><BrainCircuit size={20} /> Deep Review</h3>
-                            <div className="review-list">
+            {/* Detail Modal */}
+            <Modal
+                isOpen={!!selectedResult}
+                onClose={() => setSelectedResult(null)}
+                isFullScreen={true}
+                title="Session Analysis"
+            >
+                {selectedResult && (
+                    <div className="history-detail-view animate-fade-in">
+                        <div className="detail-hero-section">
+                            <div className="bg-glow-purple"></div>
+                            <div className="bg-glow-pink"></div>
+
+                            <div className="detail-hero-card">
+                                <div className="detail-hero-content">
+                                    <div className="hero-main-info">
+                                        <h1>{selectedResult.quizTitle}</h1>
+                                        <p><Calendar size={16} /> {formatDate(selectedResult.timestamp)} at {selectedResult.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                    </div>
+
+                                    <div className="hero-metrics">
+                                        <div className="hero-metric-pill">
+                                            <Award size={20} />
+                                            <div className="metric-data">
+                                                <span className="label">Full Score</span>
+                                                <span className="value">{selectedResult.score}/{selectedResult.totalQuestions}</span>
+                                            </div>
+                                        </div>
+                                        <div className="hero-metric-pill">
+                                            <Target size={20} />
+                                            <div className="metric-data">
+                                                <span className="label">Accuracy</span>
+                                                <span className="value">{selectedResult.accuracy}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="detail-analysis-section">
+                            <div className="analysis-header">
+                                <h3><BarChart3 size={24} /> Performance Analysis</h3>
+                                <p>Deep dive into your session results</p>
+                            </div>
+
+                            <div className="analysis-list">
                                 {Array.isArray(selectedResult.questions) ? (
                                     selectedResult.questions.map((q, idx) => {
                                         const userAns = selectedResult.selectedAnswers?.[idx];
                                         const isCorrect = userAns === q.correctAnswer;
-
                                         return (
-                                            <div key={idx} className={`review-item ${isCorrect ? 'correct' : 'incorrect'}`}>
-                                                <div className="q-header">
-                                                    <span className="q-num">Question {idx + 1}</span>
-                                                    {isCorrect ? <CheckCircle2 size={18} className="text-success" /> : <XCircle size={18} className="text-error" />}
+                                            <div
+                                                key={idx}
+                                                className={`analysis-item ${isCorrect ? 'is-correct' : 'is-incorrect'}`}
+                                                style={{ animationDelay: `${idx * 0.1}s` }}
+                                            >
+                                                <div className="analysis-item-number">
+                                                    <span>{idx + 1}</span>
                                                 </div>
-                                                <p className="q-text">{q.question}</p>
-                                                <div className="ans-comparison">
-                                                    <div className="ans-row correct-ans">
-                                                        <span className="label">Correct Answer:</span>
-                                                        <span className="value">{q.options ? q.options[q.correctAnswer] : 'N/A'}</span>
-                                                    </div>
-                                                    {!isCorrect && q.options && (
-                                                        <div className="ans-row user-ans">
-                                                            <span className="label">Your Answer:</span>
-                                                            <span className="value">{userAns !== undefined && userAns !== null ? q.options[userAns] : 'Skipped'}</span>
+                                                <div className="analysis-item-body">
+                                                    <div className="analysis-item-header">
+                                                        <p className="analysis-question">{q.question}</p>
+                                                        <div className={`status-badge ${isCorrect ? 'correct' : 'incorrect'}`}>
+                                                            {isCorrect ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                                                            <span>{isCorrect ? 'Correct' : 'Incorrect'}</span>
                                                         </div>
-                                                    )}
+                                                    </div>
+
+                                                    <div className="analysis-answers-grid">
+                                                        <div className="answer-pill correct">
+                                                            <span className="label">Correct Answer</span>
+                                                            <span className="value">{q.options[q.correctAnswer]}</span>
+                                                        </div>
+                                                        {!isCorrect && (
+                                                            <div className="answer-pill yours">
+                                                                <span className="label">Your Choice</span>
+                                                                <span className="value">{userAns !== undefined && userAns !== null ? q.options[userAns] : 'Skipped'}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
                                     })
                                 ) : (
-                                    <p className="no-data-msg">Detailed review data is unavailable for this session.</p>
+                                    <div className="no-analysis-data">
+                                        <p>No detailed question data available for this session.</p>
+                                    </div>
                                 )}
                             </div>
                         </div>
+
+                        <div className="history-modal-footer">
+                            <button className="btn-primary" onClick={() => setSelectedResult(null)}>
+                                <History size={20} /> Return to History
+                            </button>
+                        </div>
                     </div>
                 )}
-            </div>
+            </Modal>
         </div>
     );
 };

@@ -49,7 +49,6 @@ function AppContent() {
       {/* Quiz Generation Modal */}
       <PasteNotesModal />
 
-      {/* Interactive Quiz Modal */}
       <QuizModalPlay />
 
       {/* Community Content Browser */}
