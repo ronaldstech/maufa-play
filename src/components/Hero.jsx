@@ -1,5 +1,6 @@
 import React from 'react';
 import './Hero.css';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
     return (
@@ -26,13 +27,15 @@ const Hero = () => {
                         <button className="btn-primary hero-btn">
                             Start Learning Free
                         </button>
-                        <button className="btn-secondary hero-btn with-icon">
-                            Explore Games
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                                <polyline points="12 5 19 12 12 19"></polyline>
-                            </svg>
-                        </button>
+                        <Link to="/games">
+                            <button className="btn-secondary hero-btn with-icon">
+                                Explore Games
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </button>
+                        </Link>
                     </div>
 
                     <div className="hero-stats delay-3">
