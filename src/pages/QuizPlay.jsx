@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../services/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 import { ChevronRight, ChevronLeft, CheckCircle2, XCircle, RotateCcw, Award, Sparkles, Target, BarChart3, Clock } from 'lucide-react';
@@ -84,6 +84,14 @@ const QuizModalPlay = () => {
                 selectedAnswers: selectedAnswers,
                 questions: questions // Store questions so we can review even if the original quiz is deleted
             });
+
+            // If it's a community quiz (has quizId), increment its attempt counter
+            if (quizId) {
+                const quizRef = doc(db, 'quizzes', quizId);
+                await updateDoc(quizRef, {
+                    attempts: increment(1)
+                });
+            }
         } catch (error) {
             console.error("Error saving quiz result:", error);
         } finally {

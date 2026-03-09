@@ -131,6 +131,10 @@ const CommunityModal = () => {
                                             <span>{quiz.questions?.length || 0} Questions</span>
                                         </div>
                                         <div className="meta-item">
+                                            <Users size={14} />
+                                            <span>{quiz.attempts || 0} Plays</span>
+                                        </div>
+                                        <div className="meta-item">
                                             <Sparkles size={14} />
                                             <span>AI Verified</span>
                                         </div>

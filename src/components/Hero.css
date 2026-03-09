@@ -1,3 +1,4 @@
+/* Hero Main Styles */
 .hero {
     min-height: 100vh;
     padding-top: calc(var(--nav-height) + 4rem);
@@ -8,22 +9,23 @@
     overflow: hidden;
 }
 
-.hero-container {
+.hero .hero-container {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
     gap: 4rem;
     align-items: center;
 }
 
-/* Hero Content */
-.hero-content {
+/* Content Area */
+.hero .hero-content {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     z-index: 10;
 }
 
-.badge {
+/* Scoped Badge Styles */
+.hero .badge {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -37,7 +39,7 @@
     margin-bottom: 2rem;
 }
 
-.badge-dot {
+.hero .badge-dot {
     width: 8px;
     height: 8px;
     background-color: var(--accent-purple);
@@ -63,15 +65,14 @@
     }
 }
 
-
-.hero-title {
-    font-size: clamp(3rem, 5vw, 4.5rem);
+.hero .hero-title {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
     font-weight: 800;
     letter-spacing: -0.03em;
     margin-bottom: 1.5rem;
 }
 
-.hero-description {
+.hero .hero-description {
     font-size: 1.125rem;
     color: var(--text-secondary);
     max-width: 540px;
@@ -79,32 +80,35 @@
     font-weight: 400;
 }
 
-.hero-cta {
+.hero .hero-cta {
     display: flex;
     gap: 1rem;
     margin-bottom: 4rem;
 }
 
-.hero-btn {
+.hero .hero-btn {
     padding: 1rem 2rem;
     font-size: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.with-icon {
+.hero .with-icon {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.with-icon svg {
+.hero .with-icon svg {
     transition: transform 0.3s ease;
 }
 
-.with-icon:hover svg {
+.hero .with-icon:hover svg {
     transform: translateX(4px);
 }
 
-.hero-stats {
+.hero .hero-stats {
     display: flex;
     gap: 3rem;
     padding-top: 2rem;
@@ -112,19 +116,19 @@
     width: 100%;
 }
 
-.stat-item {
+.hero .stat-item {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
 }
 
-.stat-value {
+.hero .stat-value {
     font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
 }
 
-.stat-label {
+.hero .stat-label {
     font-size: 0.875rem;
     color: var(--text-secondary);
     font-weight: 500;
@@ -132,8 +136,8 @@
     letter-spacing: 0.05em;
 }
 
-/* Hero Visual */
-.hero-visual {
+/* Visuals Section */
+.hero .hero-visual {
     position: relative;
     height: 600px;
     display: flex;
@@ -141,20 +145,20 @@
     align-items: center;
 }
 
-.visual-container {
+.hero .visual-container {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
-.glow-sphere {
+.hero .glow-sphere {
     position: absolute;
     border-radius: 50%;
     filter: blur(80px);
     z-index: 1;
 }
 
-.main-sphere {
+.hero .main-sphere {
     width: 300px;
     height: 300px;
     background: var(--accent-purple);
@@ -165,7 +169,7 @@
     animation: float 8s ease-in-out infinite alternate;
 }
 
-.secondary-sphere {
+.hero .secondary-sphere {
     width: 200px;
     height: 200px;
     background: var(--accent-blue);
@@ -175,7 +179,7 @@
     animation: float 10s ease-in-out infinite alternate-reverse;
 }
 
-.glass-card {
+.hero .glass-card {
     background: rgba(30, 30, 42, 0.6);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -189,18 +193,18 @@
     z-index: 10;
 }
 
-.floating-card {
+.hero .floating-card {
     position: absolute;
     animation: float 6s ease-in-out infinite;
 }
 
-.card-1 {
+.hero .card-1 {
     top: 15%;
     left: 0;
     animation-delay: 0s;
 }
 
-.card-2 {
+.hero .card-2 {
     top: 45%;
     right: -5%;
     animation-delay: 1.5s;
@@ -210,13 +214,13 @@
     box-shadow: var(--shadow-glow);
 }
 
-.card-3 {
+.hero .card-3 {
     bottom: 20%;
     left: 5%;
     animation-delay: 3s;
 }
 
-.card-icon {
+.hero .card-icon {
     width: 50px;
     height: 50px;
     border-radius: 14px;
@@ -228,21 +232,21 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
-.math-icon {
+.hero .math-icon {
     color: var(--accent-blue);
 }
 
-.bio-icon {
+.hero .bio-icon {
     color: #10b981;
 }
 
-.card-info h4 {
+.hero .card-info h4 {
     font-size: 1rem;
     font-weight: 600;
     margin-bottom: 0.25rem;
 }
 
-.progress-bar {
+.hero .progress-bar {
     width: 120px;
     height: 6px;
     background: rgba(255, 255, 255, 0.1);
@@ -251,18 +255,22 @@
     margin-top: 0.5rem;
 }
 
-.progress {
+.hero .progress {
     height: 100%;
     background: var(--gradient-primary);
     border-radius: 4px;
 }
 
-.text-sm {
+.hero .text-sm {
     font-size: 0.8rem;
     color: var(--text-secondary);
 }
 
-.badge-small {
+.hero .text-secondary {
+    color: var(--text-secondary);
+}
+
+.hero .badge-small {
     display: inline-block;
     font-size: 0.75rem;
     padding: 0.2rem 0.5rem;
@@ -272,39 +280,40 @@
     margin-top: 0.25rem;
 }
 
+/* Responsive Overrides */
 @media (max-width: 1024px) {
-    .hero-container {
+    .hero .hero-container {
         grid-template-columns: 1fr;
         text-align: center;
         gap: 2rem;
     }
 
-    .hero-content {
+    .hero .hero-content {
         align-items: center;
     }
 
-    .hero-description {
+    .hero .hero-description {
         margin-left: auto;
         margin-right: auto;
     }
 
-    .hero-stats {
+    .hero .hero-stats {
         justify-content: center;
     }
 
-    .card-1 {
+    .hero .card-1 {
         left: 5%;
         top: 5%;
         transform: scale(0.9);
     }
 
-    .card-2 {
+    .hero .card-2 {
         right: 5%;
         top: 35%;
         transform: scale(1);
     }
 
-    .card-3 {
+    .hero .card-3 {
         left: 15%;
         bottom: 10%;
         transform: scale(0.9);
@@ -316,49 +325,49 @@
         padding-top: calc(var(--nav-height) + 2rem);
     }
 
-    .hero-title {
+    .hero .hero-title {
         font-size: clamp(2.2rem, 8vw, 2.8rem);
     }
 
-    .hero-cta {
+    .hero .hero-cta {
         flex-direction: column;
         width: 100%;
         gap: 1rem;
     }
 
-    .hero-btn {
+    .hero .hero-btn {
         width: 100%;
         justify-content: center;
     }
 
-    .hero-stats {
+    .hero .hero-stats {
         flex-direction: column;
         gap: 1.5rem;
     }
 
-    .hero-visual {
+    .hero .hero-visual {
         height: 380px;
         margin-top: 2rem;
     }
 
-    .main-sphere {
+    .hero .main-sphere {
         width: 200px;
         height: 200px;
     }
 
-    .secondary-sphere {
+    .hero .secondary-sphere {
         width: 120px;
         height: 120px;
     }
 
-    .card-1 {
+    .hero .card-1 {
         left: 0%;
         top: 0%;
         transform: scale(0.7);
         transform-origin: top left;
     }
 
-    .card-2 {
+    .hero .card-2 {
         right: -5%;
         top: 40%;
         transform: scale(0.85);
@@ -366,7 +375,7 @@
         padding: 1rem;
     }
 
-    .card-3 {
+    .hero .card-3 {
         left: 0%;
         bottom: 0%;
         transform: scale(0.7);
@@ -375,11 +384,11 @@
 }
 
 @media (max-width: 480px) {
-    .hero-stats {
+    .hero .hero-stats {
         gap: 1rem;
     }
 
-    .stat-value {
+    .hero .stat-value {
         font-size: 1.5rem;
     }
 }
