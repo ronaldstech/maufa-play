@@ -23,9 +23,11 @@ import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 pdfjsLib.GlobalWorkerOptions.workerSrc = PDFWorker;
 
 const PDFUploadModal = () => {
-    const { isPDFModalOpen, closePDFModal, openQuiz, openFlashcards, selectedGameType, showAlert } = useUI();
+    const { isPDFModalOpen, closePDFModal, openQuiz, openFlashcards, openPuzzle, selectedGameType, showAlert } = useUI();
     const { currentUser, userProfile } = useAuth();
-    const isFlashcards = selectedGameType === "AI Flashcard Battle"; const fileInputRef = useRef(null);
+    const isFlashcards = selectedGameType === "AI Flashcard Battle"; 
+    const isPuzzle = selectedGameType === "AI Puzzle Generator";
+    const fileInputRef = useRef(null);
 
     const [step, setStep] = useState(1); // 1: Select, 2: Extracting, 3: Analyzing, 4: Configure, 5: Generating
     const [file, setFile] = useState(null);
@@ -42,7 +44,7 @@ const PDFUploadModal = () => {
         let interval;
         if (isProcessing && (step === 2 || step === 3 || step === 5)) {
             const phases = step === 5
-                ? ['Initializing generator...', `Crafting ${isFlashcards ? 'flashcards' : 'questions'}...`, 'Optimizing content...', `Finalizing ${isFlashcards ? 'deck' : 'quiz'}...`]
+                ? ['Initializing generator...', `Crafting ${isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'questions')}...`, 'Optimizing content...', `Finalizing ${isFlashcards ? 'deck' : (isPuzzle ? 'puzzle' : 'quiz')}...`]
                 : ['Scanning document...', 'Extracting knowledge...', 'Mapping concepts...', 'Identifying key terms...'];
 
             setAnalysisProgress(0);
@@ -135,10 +137,10 @@ const PDFUploadModal = () => {
             const content = await generateGameContent(selectedGameType, extractedText, { questionCount });
 
             if (!currentUser) {
-                throw new Error(`You must be logged in to save and play ${isFlashcards ? 'flashcards' : 'quizzes'}.`);
+                throw new Error(`You must be logged in to save and play ${isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'quizzes')}.`);
             }
 
-            const collectionName = isFlashcards ? 'flashcards' : 'quizzes';
+            const collectionName = isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'quizzes');
 
             // Save to Firestore
             const gameRef = await addDoc(collection(db, collectionName), {
@@ -147,7 +149,7 @@ const PDFUploadModal = () => {
                 creatorAvatar: userProfile?.photoURL || null,
                 topic: analysis.topic,
                 summary: analysis.summary,
-                [isFlashcards ? 'flashcards' : 'questions']: content,
+                [isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'questions')]: content,
                 sourceMaterial: "Extracted from PDF: " + file.name,
                 createdAt: serverTimestamp(),
                 gameType: selectedGameType
@@ -159,6 +161,12 @@ const PDFUploadModal = () => {
             if (isFlashcards) {
                 openFlashcards({
                     flashcards: content,
+                    title: analysis.topic,
+                    gameId: gameRef.id
+                });
+            } else if (isPuzzle) {
+                openPuzzle({
+                    puzzles: content,
                     title: analysis.topic,
                     gameId: gameRef.id
                 });
@@ -207,8 +215,8 @@ const PDFUploadModal = () => {
                     </div>
                     {step === 1 && <h2><Upload size={24} className="icon-purple" /> Upload Study Material</h2>}
                     {(step === 2 || step === 3) && <h2><BrainCircuit size={24} className="icon-purple animate-pulse" /> Processing Document</h2>}
-                    {step === 4 && <h2><Sliders size={24} className="icon-purple" /> Configure {isFlashcards ? 'Deck' : 'Quiz'}</h2>}
-                    {step === 5 && <h2><Sparkles size={24} className="icon-purple animate-spin-slow" /> Generating {isFlashcards ? 'Flashcards' : 'Questions'}</h2>}
+                    {step === 4 && <h2><Sliders size={24} className="icon-purple" /> Configure {isFlashcards ? 'Deck' : (isPuzzle ? 'Puzzle' : 'Quiz')}</h2>}
+                    {step === 5 && <h2><Sparkles size={24} className="icon-purple animate-spin-slow" /> Generating {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions')}</h2>}
                 </div>
 
                 <div className="pdf-modal-body">
@@ -276,7 +284,7 @@ const PDFUploadModal = () => {
 
                             <div className="slider-section">
                                 <div className="slider-header">
-                                    <label>Number of {selectedGameType === 'flashcards' ? 'Flashcards' : 'Questions'}</label>
+                                    <label>Number of {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions')}</label>
                                     <span className="count-badge">{questionCount}</span>
                                 </div>
                                 <input
@@ -308,7 +316,7 @@ const PDFUploadModal = () => {
                                         style={{ width: `${analysisProgress}%` }}
                                     ></div>
                                 </div>
-                                <p className="analysis-subtext">Our AI is crafting {questionCount} high-quality questions based on your material...</p>
+                                <p className="analysis-subtext">Our AI is crafting {questionCount} high-quality {isPuzzle ? 'scramble terms' : 'questions'} based on your material...</p>
                             </div>
                         </div>
                     )}
@@ -327,7 +335,7 @@ const PDFUploadModal = () => {
                     )}
                     {step === 4 && (
                         <button className="btn-primary" onClick={handleGenerate} disabled={isProcessing}>
-                            Generate {isFlashcards ? 'Flashcards' : 'Quiz'} <Sparkles size={18} />
+                            Generate {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Puzzle' : 'Quiz')} <Sparkles size={18} />
                             <div className="btn-glow"></div>
                         </button>
                     )}

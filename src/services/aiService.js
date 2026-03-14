@@ -78,6 +78,7 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
     const { questionCount = 5 } = options;
     const isQuiz = gameType === "AI Quiz Generator";
     const isFlashcards = gameType === "AI Flashcard Battle";
+    const isPuzzle = gameType === "AI Puzzle Generator";
 
     let systemPrompt = '';
 
@@ -121,6 +122,27 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
            Rules:
            1. Ensure terms are significant to the content.
            2. Keep the "back" informative but easy to read quickly.`;
+    } else if (isPuzzle) {
+        systemPrompt = `You are an expert academic challenge designer for MaufaLab. 
+           Your task is to analyze the user's notes and generate exactly ${questionCount} key terms or phrases for a Word Scramble puzzle.
+           
+           Each item should have a "word" (the term to unscramble) and a "hint" (a concise clue about what the word is).
+           
+           OUTPUT FORMAT:
+           You must respond ONLY with a valid JSON array of objects. Do not include any markdown formatting, backticks, or extra text.
+           
+           JSON Structure:
+           [
+             {
+               "word": "TermName",
+               "hint": "A concise clue or definition of the term."
+             }
+           ]
+           
+           Rules:
+           1. The "word" should be a significant concept from the material.
+           2. Keep the "hint" helpful but not too easy.
+           3. Words should be primarily single words or short compound terms (max 2-3 words).`;
     } else {
         systemPrompt = `You are an expert educational AI assistant for the MaufaLab platform. Your task is to generate perfectly structured academic content for a game called "${gameType}". 
         
@@ -146,7 +168,7 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
                     }
                 ],
                 temperature: 0.7,
-                response_format: (isQuiz || isFlashcards) ? { type: "json_object" } : undefined
+                response_format: (isQuiz || isFlashcards || isPuzzle) ? { type: "json_object" } : undefined
             },
             {
                 headers: {
@@ -158,16 +180,16 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
 
         const content = response.data.choices[0].message.content;
 
-        if (isQuiz || isFlashcards) {
+        if (isQuiz || isFlashcards || isPuzzle) {
             try {
                 // Return parsed JSON for structured games
                 const parsed = JSON.parse(content);
                 // Handle case where AI wraps array in an object
-                const arrayKey = isQuiz ? 'questions' : 'flashcards';
+                const arrayKey = isQuiz ? 'questions' : (isFlashcards ? 'flashcards' : 'puzzles');
                 if (parsed[arrayKey] && Array.isArray(parsed[arrayKey])) return parsed[arrayKey];
 
                 // Extra fallback: check for common variations of keys
-                const alternativeKeys = isQuiz ? ['quiz', 'data', 'items'] : ['cards', 'deck', 'data', 'items'];
+                const alternativeKeys = isQuiz ? ['quiz', 'data', 'items'] : (isFlashcards ? ['cards', 'deck', 'data', 'items'] : ['puzzles', 'words', 'data', 'items']);
                 for (const key of alternativeKeys) {
                     if (parsed[key] && Array.isArray(parsed[key])) return parsed[key];
                 }
@@ -186,13 +208,18 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
                                 options: item.options || item.choices || [],
                                 correctAnswer: typeof item.correctAnswer === 'number' ? item.correctAnswer : 0
                             };
-                        } else {
+                        } else if (isFlashcards) {
                             return {
                                 front: item.front || item.term || item.title || item.question || '',
                                 back: item.back || item.definition || item.answer || item.description || ''
                             };
+                        } else { // isPuzzle
+                            return {
+                                word: item.word || item.term || item.text || '',
+                                hint: item.hint || item.clue || item.definition || ''
+                            };
                         }
-                    }).filter(item => isQuiz ? item.question : (item.front || item.back));
+                    }).filter(item => isQuiz ? item.question : (isFlashcards ? (item.front || item.back) : (item.word || item.hint)));
                 }
 
                 return []; // Fallback empty array

@@ -10,6 +10,7 @@ import AIGames from './pages/AIGames';
 import GameSetup from './pages/GameSetup';
 import QuizModalPlay from './pages/QuizPlay';
 import FlashCardsPlay from './pages/FlashCardsPlay';
+import PuzzlePlay from './pages/PuzzlePlay';
 import QuizHistory from './pages/QuizHistory';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -52,6 +53,7 @@ function AppContent() {
 
       <QuizModalPlay />
       <FlashCardsPlay />
+      <PuzzlePlay />
 
       {/* Community Content Browser */}
       <CommunityModal />

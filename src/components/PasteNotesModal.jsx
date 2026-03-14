@@ -9,9 +9,10 @@ import Modal from './Modal';
 import './PasteNotesModal.css';
 
 const PasteNotesModal = () => {
-    const { isPasteModalOpen, closePasteModal, openQuiz, openFlashcards, selectedGameType, userProfile, showAlert } = useUI();
+    const { isPasteModalOpen, closePasteModal, openQuiz, openFlashcards, openPuzzle, selectedGameType, userProfile, showAlert } = useUI();
     const { currentUser } = useAuth();
     const isFlashcards = selectedGameType === "AI Flashcard Battle";
+    const isPuzzle = selectedGameType === "AI Puzzle Generator";
     const [step, setStep] = useState(1); // 1: Paste, 2: Analyzing, 3: Slider/Configure, 4: Generating
     const [notes, setNotes] = useState('');
     const [analysis, setAnalysis] = useState(null);
@@ -26,7 +27,7 @@ const PasteNotesModal = () => {
         let interval;
         if (isProcessing && (step === 2 || step === 4)) {
             const phases = step === 4
-                ? ['Initializing generator...', `Crafting ${isFlashcards ? 'flashcards' : 'questions'}...`, 'Optimizing content...', `Finalizing ${isFlashcards ? 'cards' : 'quiz'}...`]
+                ? ['Initializing generator...', `Crafting ${isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'questions')}...`, 'Optimizing content...', `Finalizing ${isFlashcards ? 'cards' : (isPuzzle ? 'puzzle' : 'quiz')}...`]
                 : ['Saving notes...', 'Analyzing content...', 'Mapping concepts...', 'Identifying key terms...'];
 
             setAnalysisProgress(0);
@@ -52,7 +53,7 @@ const PasteNotesModal = () => {
 
     const handleAnalyze = async () => {
         if (!notes.trim() || notes.length < 50) {
-            showAlert(`Please paste a bit more content (at least 50 characters) for a quality ${isFlashcards ? 'flashcard set' : 'quiz'}.`, 'error');
+            showAlert(`Please paste a bit more content (at least 50 characters) for a quality ${isFlashcards ? 'flashcard set' : (isPuzzle ? 'puzzle' : 'quiz')}.`, 'error');
             return;
         }
 
@@ -89,7 +90,7 @@ const PasteNotesModal = () => {
             // Save to Firestore - using a unified collection or keeping separate? 
             // The prompt says "Save to 'quizzes'" but maybe we should use 'flashcards' or a unified 'game_sessions'
             // For now, let's keep it consistent with the existing structure but use a 'type' field
-            const collectionName = isFlashcards ? 'flashcards' : 'quizzes';
+            const collectionName = isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'quizzes');
 
             const gameRef = await addDoc(collection(db, collectionName), {
                 userId: currentUser.uid,
@@ -97,7 +98,7 @@ const PasteNotesModal = () => {
                 creatorAvatar: userProfile?.photoURL || null,
                 topic: analysis.topic,
                 summary: analysis.summary,
-                [isFlashcards ? 'flashcards' : 'questions']: content,
+                [isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'questions')]: content,
                 sourceMaterial: notes.substring(0, 1000), // Save snippet
                 createdAt: serverTimestamp(),
                 gameType: selectedGameType
@@ -110,6 +111,12 @@ const PasteNotesModal = () => {
             if (isFlashcards) {
                 openFlashcards({
                     flashcards: content,
+                    title: analysis.topic,
+                    gameId: gameRef.id
+                });
+            } else if (isPuzzle) {
+                openPuzzle({
+                    puzzles: content,
                     title: analysis.topic,
                     gameId: gameRef.id
                 });
@@ -155,10 +162,10 @@ const PasteNotesModal = () => {
                         <div className={`line ${step >= 4 ? 'active' : ''}`}></div>
                         <span className={step >= 4 ? 'active' : ''}>3</span>
                     </div>
-                    {step === 1 && <h2><Sparkles className="icon-sparkle" /> Create {isFlashcards ? 'Flashcards' : 'Quiz'}</h2>}
+                    {step === 1 && <h2><Sparkles className="icon-sparkle" /> Create {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Puzzle' : 'Quiz')}</h2>}
                     {step === 2 && <h2><BrainCircuit className="icon-brain animate-pulse" /> Analyzing Content</h2>}
-                    {step === 3 && <h2><Sliders className="icon-slider" /> Configure {isFlashcards ? 'Deck' : 'Quiz'}</h2>}
-                    {step === 4 && <h2><Sparkles className="icon-sparkle animate-spin-slow" /> Generating {isFlashcards ? 'Flashcards' : 'Questions'}</h2>}
+                    {step === 3 && <h2><Sliders className="icon-slider" /> Configure {isFlashcards ? 'Deck' : (isPuzzle ? 'Puzzle' : 'Quiz')}</h2>}
+                    {step === 4 && <h2><Sparkles className="icon-sparkle animate-spin-slow" /> Generating {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions')}</h2>}
                 </div>
 
                 <div className="paste-modal-body">
@@ -206,7 +213,7 @@ const PasteNotesModal = () => {
 
                             <div className="slider-section">
                                 <div className="slider-header">
-                                    <label>Number of {isFlashcards ? 'Flashcards' : 'Questions'}</label>
+                                    <label>Number of {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions')}</label>
                                     <span className="count-badge">{questionCount}</span>
                                 </div>
                                 <input
@@ -239,7 +246,7 @@ const PasteNotesModal = () => {
                                         style={{ width: `${analysisProgress}%` }}
                                     ></div>
                                 </div>
-                                <p className="analysis-subtext">Generating {questionCount} {isFlashcards ? 'curated flashcards' : 'challenging multiple choice questions'} from your content...</p>
+                                <p className="analysis-subtext">Generating {questionCount} {isFlashcards ? 'curated flashcards' : (isPuzzle ? 'word scramble terms' : 'challenging multiple choice questions')} from your content...</p>
                             </div>
                         </div>
                     )}
@@ -258,7 +265,7 @@ const PasteNotesModal = () => {
                     )}
                     {step === 3 && (
                         <button className="btn-primary" onClick={handleGenerate} disabled={isProcessing}>
-                            Generate {questionCount} {isFlashcards ? 'Flashcards' : 'Questions'} <Sparkles size={18} />
+                            Generate {questionCount} {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions')} <Sparkles size={18} />
                             <div className="btn-glow"></div>
                         </button>
                     )}

@@ -16,6 +16,8 @@ export function UIProvider({ children }) {
     const [quizData, setQuizData] = useState(null);
     const [isFlashcardModalOpen, setIsFlashcardModalOpen] = useState(false);
     const [flashcardData, setFlashcardData] = useState(null);
+    const [isPuzzleModalOpen, setIsPuzzleModalOpen] = useState(false);
+    const [puzzleData, setPuzzleData] = useState(null);
     const [selectedGameType, setSelectedGameType] = useState('AI Quiz Generator');
     const [alerts, setAlerts] = useState([]);
 
@@ -122,6 +124,21 @@ export function UIProvider({ children }) {
         setFlashcardData(null);
     };
 
+    const openPuzzle = (data) => {
+        setPuzzleData(data);
+        setIsPuzzleModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsQuizModalOpen(false);
+        setIsFlashcardModalOpen(false);
+    };
+
+    const closePuzzle = () => {
+        setIsPuzzleModalOpen(false);
+        setPuzzleData(null);
+    };
+
     const value = {
         isLoginOpen,
         isSignupOpen,
@@ -130,8 +147,10 @@ export function UIProvider({ children }) {
         isPDFModalOpen,
         isQuizModalOpen,
         isFlashcardModalOpen,
+        isPuzzleModalOpen,
         quizData,
         flashcardData,
+        puzzleData,
         selectedGameType,
         setSelectedGameType,
         openLogin,
@@ -148,6 +167,8 @@ export function UIProvider({ children }) {
         closeQuiz,
         openFlashcards,
         closeFlashcards,
+        openPuzzle,
+        closePuzzle,
         switchToSignup,
         switchToLogin,
         alerts,
