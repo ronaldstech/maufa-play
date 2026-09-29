@@ -1,0 +1,415 @@
+.boss-arena {
+    position: relative;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 1rem 0 2rem;
+    color: white;
+}
+
+.boss-opponent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+}
+
+.boss-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(239, 68, 68, 0.12) 100%);
+    border: 2px solid rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.35);
+}
+
+.boss-avatar.is-defeated {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.3) 0%, rgba(148, 163, 184, 0.08) 100%);
+    border-color: rgba(148, 163, 184, 0.4);
+    color: #cbd5e1;
+    box-shadow: none;
+    opacity: 0.7;
+}
+
+.boss-name {
+    font-size: 1.9rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.boss-epithet {
+    display: block;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.6;
+    margin-top: 0.25rem;
+}
+
+.hp-track {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    height: 26px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.hp-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.boss-fill {
+    background: linear-gradient(90deg, #dc2626 0%, #f87171 100%);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
+.player-fill {
+    background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+.hp-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.player-status {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.25rem 0 2rem;
+}
+
+.player-status .hp-track {
+    flex: 1;
+    height: 18px;
+    max-width: none;
+}
+
+.player-status .hp-text {
+    font-size: 0.65rem;
+}
+
+.battle-metrics {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.metric {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.metric.is-low {
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.5);
+    animation: boss-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes boss-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.boss-intro-screen,
+.boss-end-screen {
+    text-align: center;
+    padding: 1.5rem 1rem;
+}
+
+.boss-intro-screen h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0.75rem 0;
+}
+
+.boss-intro-screen p {
+    max-width: 520px;
+    margin: 0 auto 1.5rem;
+    line-height: 1.7;
+    opacity: 0.8;
+}
+
+.intro-sparkle {
+    color: #f87171;
+}
+
+.intro-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.rule-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    font-size: 0.85rem;
+}
+
+.timer-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+    transition: width 1s linear;
+}
+
+.timer-fill.is-low {
+    background: linear-gradient(90deg, #dc2626 0%, #f87171 100%);
+}
+
+.difficulty-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+}
+
+.difficulty-tag.easy {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.difficulty-tag.medium {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fcd34d;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.difficulty-tag.hard {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.boss-question {
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.5;
+    margin-bottom: 1.75rem;
+}
+
+.boss-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+}
+
+.boss-option {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    text-align: left;
+    padding: 1rem 1.15rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    color: white;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.boss-option:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(239, 68, 68, 0.5);
+    transform: translateY(-2px);
+}
+
+.boss-option:disabled {
+    cursor: default;
+}
+
+.boss-option.is-correct {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10b981;
+    color: #6ee7b7;
+}
+
+.boss-option.is-wrong {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+    color: #fca5a5;
+}
+
+.option-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.option-text {
+    flex: 1;
+}
+
+.boss-feedback {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 1.25rem;
+    border-radius: 18px;
+    z-index: 5;
+    animation: boss-feedback-in 0.3s ease-out;
+}
+
+.boss-feedback.hit {
+    background: rgba(16, 185, 129, 0.16);
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    color: #6ee7b7;
+}
+
+.boss-feedback.hurt {
+    background: rgba(239, 68, 68, 0.16);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+}
+
+@keyframes boss-feedback-in {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.damage-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.speed-bonus {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.boss-taunt {
+    font-size: 0.95rem;
+    font-style: italic;
+    opacity: 0.9;
+    text-align: center;
+    max-width: 460px;
+}
+
+.end-icon {
+    margin: 0 auto 1rem;
+}
+
+.victory-icon {
+    color: #fbbf24;
+}
+
+.defeat-icon {
+    color: #ef4444;
+}
+
+.end-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.boss-end-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.85rem;
+    margin: 2rem 0;
+}
+
+.end-stat {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 0.9rem 0.5rem;
+}
+
+.end-stat-label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+    margin-bottom: 0.35rem;
+}
+
+.end-stat-value {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #f87171;
+}
+
+@media (max-width: 640px) {
+    .boss-options {
+        grid-template-columns: 1fr;
+    }
+
+    .boss-end-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .player-status {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .battle-metrics {
+        justify-content: center;
+    }
+}

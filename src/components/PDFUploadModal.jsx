@@ -23,10 +23,15 @@ import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 pdfjsLib.GlobalWorkerOptions.workerSrc = PDFWorker;
 
 const PDFUploadModal = () => {
-    const { isPDFModalOpen, closePDFModal, openQuiz, openFlashcards, openPuzzle, selectedGameType, showAlert } = useUI();
+    const { isPDFModalOpen, closePDFModal, openQuiz, openFlashcards, openPuzzle, openBoss, openCompanion, selectedGameType, showAlert } = useUI();
     const { currentUser, userProfile } = useAuth();
     const isFlashcards = selectedGameType === "AI Flashcard Battle"; 
     const isPuzzle = selectedGameType === "AI Puzzle Generator";
+    const isBoss = selectedGameType === "AI Boss Battle";
+    const isCompanion = selectedGameType === "AI Study Companion";
+    const contentLabel = isFlashcards ? 'Flashcards' : (isPuzzle ? 'Puzzle' : (isBoss ? 'Battle' : 'Quiz'));
+    const itemLabel = isFlashcards ? 'flashcards' : (isPuzzle ? 'scramble terms' : (isBoss ? 'battle questions' : 'questions'));
+    const countLabel = isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions');
     const fileInputRef = useRef(null);
 
     const [step, setStep] = useState(1); // 1: Select, 2: Extracting, 3: Analyzing, 4: Configure, 5: Generating
@@ -44,7 +49,7 @@ const PDFUploadModal = () => {
         let interval;
         if (isProcessing && (step === 2 || step === 3 || step === 5)) {
             const phases = step === 5
-                ? ['Initializing generator...', `Crafting ${isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'questions')}...`, 'Optimizing content...', `Finalizing ${isFlashcards ? 'deck' : (isPuzzle ? 'puzzle' : 'quiz')}...`]
+                ? ['Initializing generator...', `Crafting ${itemLabel}...`, 'Optimizing content...', `Finalizing ${contentLabel.toLowerCase()}...`]
                 : ['Scanning document...', 'Extracting knowledge...', 'Mapping concepts...', 'Identifying key terms...'];
 
             setAnalysisProgress(0);
@@ -67,7 +72,7 @@ const PDFUploadModal = () => {
             clearInterval(interval);
         }
         return () => clearInterval(interval);
-    }, [isProcessing, step]);
+    }, [isProcessing, step, contentLabel, itemLabel]);
 
     const handleFileSelect = (e) => {
         const selectedFile = e.target.files[0];
@@ -134,13 +139,22 @@ const PDFUploadModal = () => {
         setError(null);
 
         try {
+            if (isCompanion) {
+                handleClose();
+                openCompanion({ context: extractedText });
+                return;
+            }
+
             const content = await generateGameContent(selectedGameType, extractedText, { questionCount });
 
             if (!currentUser) {
-                throw new Error(`You must be logged in to save and play ${isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'quizzes')}.`);
+                throw new Error(`You must be logged in to save and play ${itemLabel}.`);
             }
 
-            const collectionName = isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'quizzes');
+            const collectionName = isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : (isBoss ? 'bosses' : 'quizzes'));
+            const payload = isBoss
+                ? { boss: content, questions: content.questions }
+                : { [isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'questions')]: content };
 
             // Save to Firestore
             const gameRef = await addDoc(collection(db, collectionName), {
@@ -149,7 +163,7 @@ const PDFUploadModal = () => {
                 creatorAvatar: userProfile?.photoURL || null,
                 topic: analysis.topic,
                 summary: analysis.summary,
-                [isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'questions')]: content,
+                ...payload,
                 sourceMaterial: "Extracted from PDF: " + file.name,
                 createdAt: serverTimestamp(),
                 gameType: selectedGameType
@@ -169,6 +183,12 @@ const PDFUploadModal = () => {
                     puzzles: content,
                     title: analysis.topic,
                     gameId: gameRef.id
+                });
+            } else if (isBoss) {
+                openBoss({
+                    ...content,
+                    title: analysis.topic,
+                    bossId: gameRef.id
                 });
             } else {
                 openQuiz({
@@ -215,14 +235,14 @@ const PDFUploadModal = () => {
                     </div>
                     {step === 1 && <h2><Upload size={24} className="icon-purple" /> Upload Study Material</h2>}
                     {(step === 2 || step === 3) && <h2><BrainCircuit size={24} className="icon-purple animate-pulse" /> Processing Document</h2>}
-                    {step === 4 && <h2><Sliders size={24} className="icon-purple" /> Configure {isFlashcards ? 'Deck' : (isPuzzle ? 'Puzzle' : 'Quiz')}</h2>}
-                    {step === 5 && <h2><Sparkles size={24} className="icon-purple animate-spin-slow" /> Generating {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions')}</h2>}
+                    {step === 4 && <h2><Sliders size={24} className="icon-purple" /> Configure {contentLabel}</h2>}
+                    {step === 5 && <h2><Sparkles size={24} className="icon-purple animate-spin-slow" /> Generating {contentLabel}</h2>}
                 </div>
 
                 <div className="pdf-modal-body">
                     {step === 1 && (
                         <div className="upload-step animate-fade-in">
-                            <p className="step-desc">Upload your lecture notes, handouts, or text-based PDF. Our AI will scan the content to build your {isFlashcards ? 'flashcards' : 'quiz'}.</p>
+                            <p className="step-desc">Upload your lecture notes, handouts, or text-based PDF. Our AI will scan the content to build your {contentLabel.toLowerCase()}.</p>
 
                             <div
                                 className={`upload-zone ${file ? 'has-file' : ''}`}
@@ -284,7 +304,7 @@ const PDFUploadModal = () => {
 
                             <div className="slider-section">
                                 <div className="slider-header">
-                                    <label>Number of {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions')}</label>
+                                    <label>Number of {countLabel}</label>
                                     <span className="count-badge">{questionCount}</span>
                                 </div>
                                 <input
@@ -316,7 +336,7 @@ const PDFUploadModal = () => {
                                         style={{ width: `${analysisProgress}%` }}
                                     ></div>
                                 </div>
-                                <p className="analysis-subtext">Our AI is crafting {questionCount} high-quality {isPuzzle ? 'scramble terms' : 'questions'} based on your material...</p>
+                                <p className="analysis-subtext">Our AI is crafting {questionCount} high-quality {itemLabel} based on your material...</p>
                             </div>
                         </div>
                     )}
@@ -335,7 +355,7 @@ const PDFUploadModal = () => {
                     )}
                     {step === 4 && (
                         <button className="btn-primary" onClick={handleGenerate} disabled={isProcessing}>
-                            Generate {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Puzzle' : 'Quiz')} <Sparkles size={18} />
+                            Generate {questionCount} {countLabel} <Sparkles size={18} />
                             <div className="btn-glow"></div>
                         </button>
                     )}

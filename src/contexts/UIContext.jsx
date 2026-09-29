@@ -18,6 +18,12 @@ export function UIProvider({ children }) {
     const [flashcardData, setFlashcardData] = useState(null);
     const [isPuzzleModalOpen, setIsPuzzleModalOpen] = useState(false);
     const [puzzleData, setPuzzleData] = useState(null);
+    const [isBossModalOpen, setIsBossModalOpen] = useState(false);
+    const [bossData, setBossData] = useState(null);
+    const [bossSessionId, setBossSessionId] = useState(0);
+    const [isCompanionModalOpen, setIsCompanionModalOpen] = useState(false);
+    const [companionSessionId, setCompanionSessionId] = useState(0);
+    const [companionSeed, setCompanionSeed] = useState(null);
     const [selectedGameType, setSelectedGameType] = useState('AI Quiz Generator');
     const [alerts, setAlerts] = useState([]);
 
@@ -139,6 +145,43 @@ export function UIProvider({ children }) {
         setPuzzleData(null);
     };
 
+    const openBoss = (data) => {
+        setBossData(data);
+        setBossSessionId(prev => prev + 1);
+        setIsBossModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsFlashcardModalOpen(false);
+        setIsPuzzleModalOpen(false);
+        setIsCommunityModalOpen(false);
+        setIsPDFModalOpen(false);
+    };
+
+    const closeBoss = () => {
+        setIsBossModalOpen(false);
+        setBossData(null);
+    };
+
+    const openCompanion = (seed = null) => {
+        setCompanionSeed(seed);
+        setCompanionSessionId(prev => prev + 1);
+        setIsCompanionModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsFlashcardModalOpen(false);
+        setIsPuzzleModalOpen(false);
+        setIsBossModalOpen(false);
+        setIsCommunityModalOpen(false);
+        setIsPDFModalOpen(false);
+    };
+
+    const closeCompanion = () => {
+        setIsCompanionModalOpen(false);
+        setCompanionSeed(null);
+    };
+
     const value = {
         isLoginOpen,
         isSignupOpen,
@@ -148,9 +191,15 @@ export function UIProvider({ children }) {
         isQuizModalOpen,
         isFlashcardModalOpen,
         isPuzzleModalOpen,
+        isBossModalOpen,
         quizData,
         flashcardData,
         puzzleData,
+        bossData,
+        bossSessionId,
+        isCompanionModalOpen,
+        companionSeed,
+        companionSessionId,
         selectedGameType,
         setSelectedGameType,
         openLogin,
@@ -169,6 +218,10 @@ export function UIProvider({ children }) {
         closeFlashcards,
         openPuzzle,
         closePuzzle,
+        openBoss,
+        closeBoss,
+        openCompanion,
+        closeCompanion,
         switchToSignup,
         switchToLogin,
         alerts,

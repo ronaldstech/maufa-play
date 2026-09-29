@@ -4,6 +4,69 @@ const GROQ_API_URL = '/api/groq/chat/completions';
 const GROQ_MODEL = 'openai/gpt-oss-120b';
 const API_KEY = import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_GROK_API_KEY;
 
+const BOSS_DIFFICULTY_ORDER = ['easy', 'medium', 'hard'];
+
+const parseJsonLoose = (raw) => {
+    if (typeof raw !== 'string') return raw;
+
+    const trimmed = raw.trim();
+    try {
+        return JSON.parse(trimmed);
+    } catch {
+        const start = trimmed.indexOf('{');
+        const end = trimmed.lastIndexOf('}');
+        if (start !== -1 && end > start) {
+            return JSON.parse(trimmed.slice(start, end + 1));
+        }
+        throw new Error("AI returned invalid JSON format.");
+    }
+};
+
+const findQuestionsArray = (parsed) => {
+    if (Array.isArray(parsed)) return parsed;
+    if (!parsed || typeof parsed !== 'object') return [];
+
+    for (const key of ['questions', 'rounds', 'quiz', 'items', 'data']) {
+        if (Array.isArray(parsed[key])) return parsed[key];
+    }
+    return Object.values(parsed).find(val => Array.isArray(val)) || [];
+};
+
+const normalizeDifficulty = (value) => {
+    const level = String(value || '').toLowerCase();
+    return BOSS_DIFFICULTY_ORDER.includes(level) ? level : 'medium';
+};
+
+const normalizeBossBattle = (parsed) => {
+    const questions = findQuestionsArray(parsed)
+        .map(q => {
+            const options = Array.isArray(q.options) ? q.options : (Array.isArray(q.choices) ? q.choices : []);
+            if (!q || !q.question || options.length < 2) return null;
+
+            const correctAnswer = Number.isInteger(q.correctAnswer) ? q.correctAnswer : 0;
+            return {
+                question: q.question,
+                options,
+                correctAnswer: Math.min(Math.max(correctAnswer, 0), options.length - 1),
+                difficulty: normalizeDifficulty(q.difficulty),
+                taunt: typeof q.taunt === 'string' ? q.taunt : ''
+            };
+        })
+        .filter(Boolean)
+        .sort((a, b) => BOSS_DIFFICULTY_ORDER.indexOf(a.difficulty) - BOSS_DIFFICULTY_ORDER.indexOf(b.difficulty));
+
+    if (!questions.length) {
+        throw new Error("The AI could not build a boss battle from this content. Try adding more detail to your notes.");
+    }
+
+    return {
+        bossName: parsed?.bossName || 'The Gatekeeper',
+        bossTitle: parsed?.bossTitle || 'Guardian of the Unknown',
+        bossIntro: parsed?.bossIntro || 'A challenge stands between you and mastery.',
+        questions
+    };
+};
+
 /**
  * Analyzes the source data to determine the maximum number of high-quality questions
  * that can be generated and identifies the core topic.
@@ -83,6 +146,8 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
     const isQuiz = gameType === "AI Quiz Generator";
     const isFlashcards = gameType === "AI Flashcard Battle";
     const isPuzzle = gameType === "AI Puzzle Generator";
+    const isBoss = gameType === "AI Boss Battle";
+    const isStructured = isQuiz || isFlashcards || isPuzzle || isBoss;
 
     let systemPrompt = '';
 
@@ -147,6 +212,37 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
            1. The "word" should be a significant concept from the material.
            2. Keep the "hint" helpful but not too easy.
            3. Words should be primarily single words or short compound terms (max 2-3 words).`;
+    } else if (isBoss) {
+        systemPrompt = `You are the game master for MaufaLab's "AI Boss Battle".
+           Using the learner's notes, invent a single BOSS and a gauntlet of exactly ${questionCount} multiple choice questions that the learner must answer to defeat it.
+
+           OUTPUT FORMAT:
+           Respond ONLY with a valid JSON object. No markdown, no backticks, no extra text.
+
+           JSON Structure:
+           {
+             "bossName": "Short, memorable villain name",
+             "bossTitle": "A title/epithet for the boss (max 6 words)",
+             "bossIntro": "One menacing sentence introducing the boss and the stakes.",
+             "questions": [
+               {
+                 "question": "The question text here?",
+                 "options": ["Option A", "Option B", "Option C", "Option D"],
+                 "correctAnswer": 0,
+                 "difficulty": "easy" | "medium" | "hard",
+                 "taunt": "A short one-line taunt the boss says after this question."
+               }
+             ]
+           }
+
+           Rules:
+           1. Every question must have exactly 4 options.
+           2. "correctAnswer" must be the 0-indexed integer of the correct option.
+           3. "questions" must be ordered easiest first and hardest last. Difficulty must genuinely escalate.
+           4. Later questions must be meaningfully harder than the earlier ones, not repeats with different wording.
+           5. "taunt" must be under 15 words and reference the learner's likely mistake.
+           6. Every question must be answerable from the learner's notes.
+           7. "bossName", "bossTitle" and "bossIntro" must relate to the subject matter of the notes.`;
     } else {
         systemPrompt = `You are an expert educational AI assistant for the MaufaLab platform. Your task is to generate perfectly structured academic content for a game called "${gameType}". 
         
@@ -172,7 +268,7 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
                     }
                 ],
                 temperature: 0.7,
-                response_format: (isQuiz || isFlashcards || isPuzzle) ? { type: "json_object" } : undefined
+                response_format: isStructured ? { type: "json_object" } : undefined
             },
             {
                 headers: {
@@ -183,6 +279,10 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
         );
 
         const content = response.data.choices[0].message.content;
+
+        if (isBoss) {
+            return normalizeBossBattle(parseJsonLoose(content));
+        }
 
         if (isQuiz || isFlashcards || isPuzzle) {
             try {
@@ -238,6 +338,112 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
         return content;
     } catch (error) {
         console.error("Error generating content from Groq:", error);
+        if (error.response) {
+            throw new Error(`API Error: ${error.response.status} - ${error.response.data?.error?.message || error.message}`);
+        }
+        throw new Error(error.message || "Failed to connect to the AI service.");
+    }
+};
+
+export const COMPANION_MODES = [
+    {
+        id: 'chat',
+        label: 'Chat',
+        instruction: 'Answer normally. Be encouraging and concise unless the student asks for depth.'
+    },
+    {
+        id: 'simple',
+        label: 'Explain Simply',
+        instruction: 'Explain using plain everyday language. No jargon, or jargon defined immediately. Prefer short sentences and one clear analogy per idea.'
+    },
+    {
+        id: 'quiz',
+        label: 'Quiz Me',
+        instruction: 'Act as an examiner. Ask ONE question at a time and then wait for the student to reply. Never reveal the answer before they have committed to one. After they answer, tell them whether they were right, explain why in a sentence, then move to the next question. Vary difficulty and cover the material broadly.'
+    },
+    {
+        id: 'examples',
+        label: 'Examples',
+        instruction: 'Answer using concrete real-world examples, analogies and worked mini-cases. Ground every abstract idea in something the student can picture.'
+    },
+    {
+        id: 'plan',
+        label: 'Study Plan',
+        instruction: 'Produce a structured study plan as a markdown list: topics in order, an estimated time for each, what "mastering it" means, and a short self-check question per topic. Base it on the material provided.'
+    },
+    {
+        id: 'summarize',
+        label: 'Summarize',
+        instruction: 'Summarise tightly. Lead with a one-sentence takeaway, then a short markdown bullet list of the key points. No preamble.'
+    }
+];
+
+export const COMPANION_CONTEXT_LIMIT = 4000;
+
+const buildCompanionSystemPrompt = (mode, context, studentName) => {
+    const modeConfig = COMPANION_MODES.find(m => m.id === mode) || COMPANION_MODES[0];
+    const sections = [
+        `You are Study Companion, a patient and rigorous academic tutor built into MaufaLab.${studentName ? ` You are talking to ${studentName}.` : ''}`,
+        `CURRENT MODE: ${modeConfig.label}. ${modeConfig.instruction}`,
+        'Formatting: you may use markdown. Prefer short paragraphs and bullet lists. Use bold for key terms. Never use headings deeper than level 3.',
+        'Never invent facts that are absent from the reference material. If something is not covered, say so plainly instead of guessing.',
+        'Keep replies under 250 words unless the student explicitly asks for more depth.'
+    ];
+
+    if (context && context.trim()) {
+        sections.push(`REFERENCE MATERIAL (ground every answer in this when it is relevant):\n"""\n${context.trim().slice(0, COMPANION_CONTEXT_LIMIT)}\n"""`);
+    }
+
+    return sections.join('\n\n');
+};
+
+/**
+ * Sends a turn to the AI Study Companion and returns the tutor's reply.
+ *
+ * @param {Array<{role: 'user'|'assistant', content: string}>} history - Prior turns, oldest first.
+ * @param {{mode?: string, context?: string, studentName?: string}} options
+ * @returns {Promise<string>}
+ */
+export const sendCompanionMessage = async (history, options = {}) => {
+    if (!API_KEY) {
+        throw new Error("API key is missing. Please set VITE_GROQ_API_KEY in your .env file.");
+    }
+
+    const { mode = 'chat', context = '', studentName = '' } = options;
+    const systemPrompt = buildCompanionSystemPrompt(mode, context, studentName);
+
+    const trimmedHistory = history
+        .filter(turn => turn && typeof turn.content === 'string' && turn.content.trim())
+        .slice(-16)
+        .map(turn => ({
+            role: turn.role === 'assistant' ? 'assistant' : 'user',
+            content: turn.content
+        }));
+
+    if (!trimmedHistory.length) {
+        throw new Error("Add a message before sending.");
+    }
+
+    try {
+        const response = await axios.post(
+            GROQ_API_URL,
+            {
+                model: GROQ_MODEL,
+                messages: [{ role: 'system', content: systemPrompt }, ...trimmedHistory],
+                temperature: 0.7,
+                max_tokens: 1024
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
+                }
+            }
+        );
+
+        return response.data.choices[0].message.content;
+    } catch (error) {
+        console.error("Error talking to the study companion:", error);
         if (error.response) {
             throw new Error(`API Error: ${error.response.status} - ${error.response.data?.error?.message || error.message}`);
         }

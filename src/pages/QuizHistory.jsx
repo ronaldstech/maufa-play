@@ -17,7 +17,9 @@ import {
     Loader2,
     Sparkles,
     Search,
-    Filter
+    Filter,
+    Trophy,
+    Skull
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
@@ -67,7 +69,7 @@ const QuizHistory = () => {
     };
 
     const filteredResults = results.filter(r =>
-        r.quizTitle.toLowerCase().includes(searchTerm.toLowerCase())
+        r.quizTitle?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -112,7 +114,9 @@ const QuizHistory = () => {
                                 >
                                     <div className="item-card-header">
                                         <div className="item-icon">
-                                            <BrainCircuit size={24} />
+                                            {result.outcome
+                                                ? (result.outcome === 'victory' ? <Trophy size={24} /> : <Skull size={24} />)
+                                                : <BrainCircuit size={24} />}
                                         </div>
                                         <div className={`item-score-badge ${result.accuracy >= 70 ? 'high' : 'low'}`}>
                                             {result.score}/{result.totalQuestions}
@@ -165,7 +169,11 @@ const QuizHistory = () => {
                                         <Award size={32} />
                                     </div>
                                     <div className="header-text">
-                                        <h1>{selectedResult.accuracy > 70 ? "Excellent Work!" : "Keep Pushing!"}</h1>
+                                        <h1>
+                                            {selectedResult.outcome
+                                                ? (selectedResult.outcome === 'victory' ? 'Victory!' : 'Boss Defeated You')
+                                                : (selectedResult.accuracy > 70 ? "Excellent Work!" : "Keep Pushing!")}
+                                        </h1>
 
                                     </div>
                                 </header>

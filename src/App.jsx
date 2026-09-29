@@ -11,6 +11,8 @@ import GameSetup from './pages/GameSetup';
 import QuizModalPlay from './pages/QuizPlay';
 import FlashCardsPlay from './pages/FlashCardsPlay';
 import PuzzlePlay from './pages/PuzzlePlay';
+import BossBattlePlay from './pages/BossBattlePlay';
+import StudyCompanion from './pages/StudyCompanion';
 import QuizHistory from './pages/QuizHistory';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -54,6 +56,8 @@ function AppContent() {
       <QuizModalPlay />
       <FlashCardsPlay />
       <PuzzlePlay />
+      <BossBattlePlay />
+      <StudyCompanion />
 
       {/* Community Content Browser */}
       <CommunityModal />

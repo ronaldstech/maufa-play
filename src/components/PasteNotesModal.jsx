@@ -9,10 +9,15 @@ import Modal from './Modal';
 import './PasteNotesModal.css';
 
 const PasteNotesModal = () => {
-    const { isPasteModalOpen, closePasteModal, openQuiz, openFlashcards, openPuzzle, selectedGameType, userProfile, showAlert } = useUI();
+    const { isPasteModalOpen, closePasteModal, openQuiz, openFlashcards, openPuzzle, openBoss, openCompanion, selectedGameType, userProfile, showAlert } = useUI();
     const { currentUser } = useAuth();
     const isFlashcards = selectedGameType === "AI Flashcard Battle";
     const isPuzzle = selectedGameType === "AI Puzzle Generator";
+    const isBoss = selectedGameType === "AI Boss Battle";
+    const isCompanion = selectedGameType === "AI Study Companion";
+    const contentLabel = isFlashcards ? 'Flashcards' : (isPuzzle ? 'Puzzle' : (isBoss ? 'Battle' : 'Quiz'));
+    const itemLabel = isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : (isBoss ? 'battle questions' : 'questions'));
+    const countLabel = isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions');
     const [step, setStep] = useState(1); // 1: Paste, 2: Analyzing, 3: Slider/Configure, 4: Generating
     const [notes, setNotes] = useState('');
     const [analysis, setAnalysis] = useState(null);
@@ -27,7 +32,7 @@ const PasteNotesModal = () => {
         let interval;
         if (isProcessing && (step === 2 || step === 4)) {
             const phases = step === 4
-                ? ['Initializing generator...', `Crafting ${isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'questions')}...`, 'Optimizing content...', `Finalizing ${isFlashcards ? 'cards' : (isPuzzle ? 'puzzle' : 'quiz')}...`]
+                ? ['Initializing generator...', `Crafting ${itemLabel}...`, 'Optimizing content...', `Finalizing ${contentLabel.toLowerCase()}...`]
                 : ['Saving notes...', 'Analyzing content...', 'Mapping concepts...', 'Identifying key terms...'];
 
             setAnalysisProgress(0);
@@ -49,11 +54,11 @@ const PasteNotesModal = () => {
             clearInterval(interval);
         }
         return () => clearInterval(interval);
-    }, [isProcessing, step]);
+    }, [isProcessing, step, contentLabel, itemLabel]);
 
     const handleAnalyze = async () => {
         if (!notes.trim() || notes.length < 50) {
-            showAlert(`Please paste a bit more content (at least 50 characters) for a quality ${isFlashcards ? 'flashcard set' : (isPuzzle ? 'puzzle' : 'quiz')}.`, 'error');
+            showAlert(`Please paste a bit more content (at least 50 characters) for a quality ${contentLabel.toLowerCase()}.`, 'error');
             return;
         }
 
@@ -84,13 +89,16 @@ const PasteNotesModal = () => {
             const content = await generateGameContent(selectedGameType, notes, { questionCount });
 
             if (!currentUser) {
-                throw new Error(`You must be logged in to save and play ${isFlashcards ? 'flashcards' : 'quizzes'}.`);
+                throw new Error(`You must be logged in to save and play ${itemLabel}.`);
             }
 
             // Save to Firestore - using a unified collection or keeping separate? 
             // The prompt says "Save to 'quizzes'" but maybe we should use 'flashcards' or a unified 'game_sessions'
             // For now, let's keep it consistent with the existing structure but use a 'type' field
-            const collectionName = isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'quizzes');
+            const collectionName = isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : (isBoss ? 'bosses' : 'quizzes'));
+            const payload = isBoss
+                ? { boss: content, questions: content.questions }
+                : { [isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'questions')]: content };
 
             const gameRef = await addDoc(collection(db, collectionName), {
                 userId: currentUser.uid,
@@ -98,7 +106,7 @@ const PasteNotesModal = () => {
                 creatorAvatar: userProfile?.photoURL || null,
                 topic: analysis.topic,
                 summary: analysis.summary,
-                [isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : 'questions')]: content,
+                ...payload,
                 sourceMaterial: notes.substring(0, 1000), // Save snippet
                 createdAt: serverTimestamp(),
                 gameType: selectedGameType
@@ -119,6 +127,12 @@ const PasteNotesModal = () => {
                     puzzles: content,
                     title: analysis.topic,
                     gameId: gameRef.id
+                });
+            } else if (isBoss) {
+                openBoss({
+                    ...content,
+                    title: analysis.topic,
+                    bossId: gameRef.id
                 });
             } else {
                 openQuiz({
@@ -149,7 +163,61 @@ const PasteNotesModal = () => {
         resetState();
     };
 
+    const handleCompanionStart = () => {
+        if (!notes.trim() || notes.length < 50) {
+            showAlert('Please paste a bit more content (at least 50 characters) to give the tutor something to work with.', 'error');
+            return;
+        }
+        openCompanion({ context: notes });
+        closePasteModal();
+        resetState();
+    };
+
     if (!isPasteModalOpen) return null;
+
+    if (isCompanion) {
+        return (
+            <Modal isOpen={isPasteModalOpen} onClose={handleClose}>
+                <div className="paste-modal-content">
+                    <div className="paste-modal-header">
+                        <div className="step-indicator">
+                            <span className="active">1</span>
+                            <div className="line"></div>
+                            <span>2</span>
+                        </div>
+                        <h2><Sparkles className="icon-sparkle" /> Ground Your Tutor</h2>
+                    </div>
+
+                    <div className="paste-modal-body">
+                        <div className="paste-step animate-fade-in">
+                            <p className="step-desc">Paste your lecture notes below. The tutor will ground every answer in this material. You can also skip this and start chatting straight away.</p>
+                            <div className="input-container">
+                                <textarea
+                                    placeholder="Paste notes here (min 50 characters)..."
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    autoFocus
+                                />
+                                <div className="textarea-footer">
+                                    <span>{notes.length} characters</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="paste-modal-footer">
+                        <button className="btn-ghost" onClick={handleClose}>
+                            Cancel
+                        </button>
+                        <button className="btn-primary" onClick={handleCompanionStart} disabled={notes.length < 50}>
+                            Start Chatting <Sparkles size={18} />
+                            <div className="btn-glow"></div>
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+        );
+    }
 
     return (
         <Modal isOpen={isPasteModalOpen} onClose={handleClose}>
@@ -162,10 +230,10 @@ const PasteNotesModal = () => {
                         <div className={`line ${step >= 4 ? 'active' : ''}`}></div>
                         <span className={step >= 4 ? 'active' : ''}>3</span>
                     </div>
-                    {step === 1 && <h2><Sparkles className="icon-sparkle" /> Create {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Puzzle' : 'Quiz')}</h2>}
+                    {step === 1 && <h2><Sparkles className="icon-sparkle" /> Create {contentLabel}</h2>}
                     {step === 2 && <h2><BrainCircuit className="icon-brain animate-pulse" /> Analyzing Content</h2>}
-                    {step === 3 && <h2><Sliders className="icon-slider" /> Configure {isFlashcards ? 'Deck' : (isPuzzle ? 'Puzzle' : 'Quiz')}</h2>}
-                    {step === 4 && <h2><Sparkles className="icon-sparkle animate-spin-slow" /> Generating {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions')}</h2>}
+                    {step === 3 && <h2><Sliders className="icon-slider" /> Configure {contentLabel}</h2>}
+                    {step === 4 && <h2><Sparkles className="icon-sparkle animate-spin-slow" /> Generating {contentLabel}</h2>}
                 </div>
 
                 <div className="paste-modal-body">
@@ -213,7 +281,7 @@ const PasteNotesModal = () => {
 
                             <div className="slider-section">
                                 <div className="slider-header">
-                                    <label>Number of {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions')}</label>
+                                    <label>Number of {countLabel}</label>
                                     <span className="count-badge">{questionCount}</span>
                                 </div>
                                 <input
@@ -246,7 +314,7 @@ const PasteNotesModal = () => {
                                         style={{ width: `${analysisProgress}%` }}
                                     ></div>
                                 </div>
-                                <p className="analysis-subtext">Generating {questionCount} {isFlashcards ? 'curated flashcards' : (isPuzzle ? 'word scramble terms' : 'challenging multiple choice questions')} from your content...</p>
+                                <p className="analysis-subtext">Generating {questionCount} {itemLabel} from your content...</p>
                             </div>
                         </div>
                     )}
@@ -265,7 +333,7 @@ const PasteNotesModal = () => {
                     )}
                     {step === 3 && (
                         <button className="btn-primary" onClick={handleGenerate} disabled={isProcessing}>
-                            Generate {questionCount} {isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions')} <Sparkles size={18} />
+                            Generate {questionCount} {countLabel} <Sparkles size={18} />
                             <div className="btn-glow"></div>
                         </button>
                     )}

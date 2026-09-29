@@ -18,12 +18,17 @@ import Modal from './Modal';
 import './CommunityModal.css';
 
 const CommunityModal = () => {
-    const { isCommunityModalOpen, closeCommunityModal, openQuiz, openFlashcards, selectedGameType } = useUI();
+    const { isCommunityModalOpen, closeCommunityModal, openQuiz, openFlashcards, openBoss, openCompanion, selectedGameType } = useUI();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState('recent');
     const isFlashcards = selectedGameType === "AI Flashcard Battle";
+    const isBoss = selectedGameType === "AI Boss Battle";
+    const isCompanion = selectedGameType === "AI Study Companion";
+    const typeLabel = isFlashcards ? 'Flashcards' : (isBoss ? 'Boss Battles' : (isCompanion ? 'Study Material' : 'Quizzes'));
+    const playLabel = isFlashcards ? 'Deck' : (isBoss ? 'Battle' : (isCompanion ? 'Tutor' : 'Quiz'));
+    const countLabel = isFlashcards ? 'Cards' : 'Questions';
     useEffect(() => {
         if (isCommunityModalOpen) {
             fetchCommunityContent();
@@ -33,7 +38,7 @@ const CommunityModal = () => {
     const fetchCommunityContent = async () => {
         setLoading(true);
         try {
-            const collectionName = isFlashcards ? 'flashcards' : 'quizzes';
+            const collectionName = isFlashcards ? 'flashcards' : (isBoss ? 'bosses' : 'quizzes');
             const q = query(
                 collection(db, collectionName),
                 orderBy('createdAt', 'desc'),
@@ -58,11 +63,23 @@ const CommunityModal = () => {
     );
 
     const handlePlay = (item) => {
-        if (isFlashcards) {
+        if (isCompanion) {
+            openCompanion({
+                context: [item.sourceMaterial, item.summary, item.topic].filter(Boolean).join('\n\n'),
+                topic: item.topic
+            });
+        } else if (isFlashcards) {
             openFlashcards({
                 flashcards: item.flashcards,
                 title: item.topic,
                 gameId: item.id
+            });
+        } else if (isBoss && item.boss) {
+            openBoss({
+                ...item.boss,
+                questions: item.boss.questions || item.questions,
+                title: item.topic,
+                bossId: item.id
             });
         } else {
             openQuiz({
@@ -86,10 +103,10 @@ const CommunityModal = () => {
     if (!isCommunityModalOpen) return null;
 
     return (
-        <Modal isOpen={isCommunityModalOpen} onClose={closeCommunityModal} maxWidth="1000px" title={`Community ${isFlashcards ? 'Flashcards' : 'Quizzes'}`}>
+        <Modal isOpen={isCommunityModalOpen} onClose={closeCommunityModal} maxWidth="1000px" title={`Community ${typeLabel}`}>
             <div className="community-modal-container">
                 <div className="community-sub-header">
-                    <p>Explore and learn from {isFlashcards ? 'flashcards' : 'quizzes'} created by peers.</p>
+                    <p>Explore and learn from {typeLabel.toLowerCase()} created by peers.</p>
                     <div className="search-bar-wrapper">
                         <Search className="search-icon" size={18} />
                         <input
@@ -105,7 +122,7 @@ const CommunityModal = () => {
                     {loading ? (
                         <div className="community-loading">
                             <Loader2 className="animate-spin" size={40} />
-                            <p>Loading community {isFlashcards ? 'decks' : 'challenges'}...</p>
+                            <p>Loading community {isFlashcards ? 'decks' : (isBoss ? 'boss battles' : 'challenges')}...</p>
                         </div>
                     ) : filteredItems.length > 0 ? (
                         <div className="quizzes-grid">
@@ -137,7 +154,7 @@ const CommunityModal = () => {
                                     <div className="quiz-meta">
                                         <div className="meta-item">
                                             <HelpCircle size={14} />
-                                            <span>{isFlashcards ? item.flashcards?.length : item.questions?.length || 0} {isFlashcards ? 'Cards' : 'Questions'}</span>
+                                            <span>{isFlashcards ? item.flashcards?.length : item.questions?.length || 0} {countLabel}</span>
                                         </div>
                                         <div className="meta-item">
                                             <Users size={14} />
@@ -150,7 +167,7 @@ const CommunityModal = () => {
                                     </div>
 
                                     <button className="play-btn" onClick={() => handlePlay(item)}>
-                                        Play {isFlashcards ? 'Deck' : 'Quiz'} <Play size={16} fill="currentColor" />
+                                        Play {playLabel} <Play size={16} fill="currentColor" />
                                     </button>
                                 </div>
                             ))}
@@ -158,14 +175,14 @@ const CommunityModal = () => {
                     ) : (
                         <div className="no-quizzes">
                             <Users size={64} className="muted-icon" />
-                            <h3>No {isFlashcards ? 'flashcards' : 'quizzes'} found</h3>
+                            <h3>No {typeLabel.toLowerCase()} found</h3>
                             <p>Try a different search term or be the first to create one!</p>
                         </div>
                     )}
                 </div>
 
                 <div className="community-footer">
-                    <p>Total Contribution: <strong>{items.length}+</strong> {isFlashcards ? 'Decks' : 'Quizzes'}</p>
+                    <p>Total Contribution: <strong>{items.length}+</strong> {isFlashcards ? 'Decks' : (isBoss ? 'Boss Battles' : 'Quizzes')}</p>
                     <button className="btn-ghost" onClick={closeCommunityModal}>Close</button>
                 </div>
             </div>
