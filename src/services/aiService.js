@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const GROQ_API_URL = '/api/groq/chat/completions';
+const GROQ_MODEL = 'openai/gpt-oss-120b';
 const API_KEY = import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_GROK_API_KEY;
 
 /**
@@ -19,7 +20,7 @@ export const analyzeContent = async (sourceData) => {
         const response = await axios.post(
             GROQ_API_URL,
             {
-                model: 'llama-3.3-70b-versatile',
+                model: GROQ_MODEL,
                 messages: [
                     {
                         role: 'system',
@@ -58,6 +59,9 @@ export const analyzeContent = async (sourceData) => {
         return JSON.parse(response.data.choices[0].message.content);
     } catch (error) {
         console.error("Error analyzing content:", error);
+        if (error.response) {
+            throw new Error(`API Error: ${error.response.status} - ${error.response.data?.error?.message || error.message}`);
+        }
         throw new Error("Failed to analyze content. Please ensure the notes are substantial.");
     }
 };
@@ -156,7 +160,7 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
         const response = await axios.post(
             GROQ_API_URL,
             {
-                model: 'llama-3.3-70b-versatile',
+                model: GROQ_MODEL,
                 messages: [
                     {
                         role: 'system',
@@ -223,7 +227,7 @@ export const generateGameContent = async (gameType, sourceData, options = {}) =>
                 }
 
                 return []; // Fallback empty array
-            } catch (e) {
+            } catch {
                 // Fallback for weird AI formatting
                 const jsonMatch = content.match(/\[[\s\S]*\]/);
                 if (jsonMatch) return JSON.parse(jsonMatch[0]);
