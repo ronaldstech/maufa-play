@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 import { useRef } from 'react';
-import { Menu, X, User, Home, Zap, Gamepad2, History, Info, LogOut, ChevronDown, Settings } from 'lucide-react';
+import { Menu, X, User, Home, Zap, Gamepad2, History, Info, LogOut, ChevronDown, Settings, ShieldCheck } from 'lucide-react';
+import { isStaff } from '../admin/permissions';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -95,7 +96,12 @@ const Navbar = () => {
                                 <Link to="/profile" className="mobile-dropdown-link" onClick={() => setIsMobileMenuOpen(false)}>
                                     <User size={16} /> Profile
                                 </Link>
-                                <button onClick={handleLogout} className="mobile-dropdown-link logout">
+                                {isStaff(userProfile) && (
+                                                <Link to="/admin" className="mobile-dropdown-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                                    <ShieldCheck size={16} /> Admin Control Room
+                                                </Link>
+                                            )}
+                                            <button onClick={handleLogout} className="mobile-dropdown-link logout">
                                     <LogOut size={16} /> Logout
                                 </button>
                             </div>
@@ -136,6 +142,12 @@ const Navbar = () => {
                                         <Settings size={16} />
                                         <span>Settings</span>
                                     </Link>
+                                    {isStaff(userProfile) && (
+                                        <Link to="/admin" className="dropdown-item" onClick={() => setIsProfileOpen(false)}>
+                                            <ShieldCheck size={16} />
+                                            <span>Admin Control Room</span>
+                                        </Link>
+                                    )}
                                     <div className="dropdown-divider"></div>
                                     <button onClick={handleLogout} className="dropdown-item logout-btn">
                                         <LogOut size={16} />

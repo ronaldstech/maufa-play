@@ -1,8 +1,11 @@
 import React from 'react';
 import './Hero.css';
 import { Link } from 'react-router-dom';
+import { useUI } from '../contexts/UIContext';
 
 const Hero = () => {
+    const { openCompanion } = useUI();
+
     return (
         <section className="hero">
             <div className="container hero-container">
@@ -24,7 +27,7 @@ const Hero = () => {
                     </p>
 
                     <div className="hero-cta delay-2">
-                        <button className="btn-primary hero-btn">
+                        <button className="btn-primary hero-btn" onClick={() => openCompanion()}>
                             Start Learning Free
                         </button>
                         <Link to="/games">

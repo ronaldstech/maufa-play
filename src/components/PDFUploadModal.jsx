@@ -12,7 +12,9 @@ import {
     CheckCircle2,
     BrainCircuit,
     Sliders,
-    Sparkles
+    Sparkles,
+    Swords,
+    Compass
 } from 'lucide-react';
 import Modal from './Modal';
 import './PDFUploadModal.css';
@@ -23,13 +25,15 @@ import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 pdfjsLib.GlobalWorkerOptions.workerSrc = PDFWorker;
 
 const PDFUploadModal = () => {
-    const { isPDFModalOpen, closePDFModal, openQuiz, openFlashcards, openPuzzle, openBoss, openCompanion, selectedGameType, showAlert } = useUI();
+    const { isPDFModalOpen, closePDFModal, openQuiz, openFlashcards, openPuzzle, openBoss, openCompanion, openDebate, openScenario, selectedGameType, showAlert } = useUI();
     const { currentUser, userProfile } = useAuth();
     const isFlashcards = selectedGameType === "AI Flashcard Battle"; 
     const isPuzzle = selectedGameType === "AI Puzzle Generator";
     const isBoss = selectedGameType === "AI Boss Battle";
     const isCompanion = selectedGameType === "AI Study Companion";
-    const contentLabel = isFlashcards ? 'Flashcards' : (isPuzzle ? 'Puzzle' : (isBoss ? 'Battle' : 'Quiz'));
+    const isDebate = selectedGameType === "AI Debate Game";
+    const isScenario = selectedGameType === "AI Scenario Simulator";
+    const contentLabel = isFlashcards ? 'Flashcards' : (isPuzzle ? 'Puzzle' : (isBoss ? 'Battle' : (isDebate ? 'Debate' : (isScenario ? 'Scenario' : 'Quiz'))));
     const itemLabel = isFlashcards ? 'flashcards' : (isPuzzle ? 'scramble terms' : (isBoss ? 'battle questions' : 'questions'));
     const countLabel = isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions');
     const fileInputRef = useRef(null);
@@ -135,13 +139,66 @@ const PDFUploadModal = () => {
 
     const handleGenerate = async () => {
         setIsProcessing(true);
-        setStep(5);
         setError(null);
+        if (!isDebate && !isScenario) setStep(5);
 
         try {
             if (isCompanion) {
                 handleClose();
                 openCompanion({ context: extractedText });
+                return;
+            }
+
+            if (isDebate) {
+                if (!currentUser) {
+                    throw new Error('You must be logged in to start and save a debate.');
+                }
+
+                const debateRef = await addDoc(collection(db, 'debates'), {
+                    userId: currentUser.uid,
+                    creatorName: userProfile?.displayName || currentUser.email.split('@')[0],
+                    creatorAvatar: userProfile?.photoURL || null,
+                    topic: analysis.topic,
+                    summary: analysis.summary,
+                    sourceMaterial: 'Extracted from PDF: ' + file.name,
+                    createdAt: serverTimestamp(),
+                    gameType: selectedGameType
+                });
+
+                handleClose();
+                openDebate({
+                    topic: analysis.topic,
+                    summary: analysis.summary,
+                    context: extractedText,
+                    debateId: debateRef.id
+                });
+                return;
+            }
+
+            if (isScenario) {
+                if (!currentUser) {
+                    throw new Error('You must be logged in to start and save a scenario.');
+                }
+
+                const scenarioRef = await addDoc(collection(db, 'scenarios'), {
+                    userId: currentUser.uid,
+                    creatorName: userProfile?.displayName || currentUser.email.split('@')[0],
+                    creatorAvatar: userProfile?.photoURL || null,
+                    topic: analysis.topic,
+                    summary: analysis.summary,
+                    sourceMaterial: 'Extracted from PDF: ' + file.name,
+                    createdAt: serverTimestamp(),
+                    gameType: selectedGameType,
+                    plays: 0
+                });
+
+                handleClose();
+                openScenario({
+                    topic: analysis.topic,
+                    summary: analysis.summary,
+                    context: extractedText,
+                    scenarioId: scenarioRef.id
+                });
                 return;
             }
 
@@ -302,24 +359,32 @@ const PDFUploadModal = () => {
                                 <p className="summary-text">{analysis.summary}</p>
                             </div>
 
-                            <div className="slider-section">
-                                <div className="slider-header">
-                                    <label>Number of {countLabel}</label>
-                                    <span className="count-badge">{questionCount}</span>
+                            {isDebate || isScenario ? (
+                                <p className="slider-hint">
+                                    {isDebate
+                                        ? 'Next you choose which side to argue, how tough the AI opponent is, and how many rounds you want.'
+                                        : 'Next you set how intense the situation is and how many decisions you will have to make.'}
+                                </p>
+                            ) : (
+                                <div className="slider-section">
+                                    <div className="slider-header">
+                                        <label>Number of {countLabel}</label>
+                                        <span className="count-badge">{questionCount}</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max={analysis.maxQuestions}
+                                        value={questionCount}
+                                        onChange={(e) => setQuestionCount(parseInt(e.target.value))}
+                                        className="premium-slider"
+                                    />
+                                    <div className="slider-range">
+                                        <span>1</span>
+                                        <span>Max: {analysis.maxQuestions}</span>
+                                    </div>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max={analysis.maxQuestions}
-                                    value={questionCount}
-                                    onChange={(e) => setQuestionCount(parseInt(e.target.value))}
-                                    className="premium-slider"
-                                />
-                                <div className="slider-range">
-                                    <span>1</span>
-                                    <span>Max: {analysis.maxQuestions}</span>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     )}
 
@@ -355,7 +420,11 @@ const PDFUploadModal = () => {
                     )}
                     {step === 4 && (
                         <button className="btn-primary" onClick={handleGenerate} disabled={isProcessing}>
-                            Generate {questionCount} {countLabel} <Sparkles size={18} />
+                            {isDebate
+                                ? <>Set Up Debate <Swords size={18} /></>
+                                : isScenario
+                                    ? <>Set Up Scenario <Compass size={18} /></>
+                                    : <>Generate {questionCount} {countLabel} <Sparkles size={18} /></>}
                             <div className="btn-glow"></div>
                         </button>
                     )}

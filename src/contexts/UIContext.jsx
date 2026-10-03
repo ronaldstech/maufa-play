@@ -24,6 +24,12 @@ export function UIProvider({ children }) {
     const [isCompanionModalOpen, setIsCompanionModalOpen] = useState(false);
     const [companionSessionId, setCompanionSessionId] = useState(0);
     const [companionSeed, setCompanionSeed] = useState(null);
+    const [isDebateModalOpen, setIsDebateModalOpen] = useState(false);
+    const [debateData, setDebateData] = useState(null);
+    const [debateSessionId, setDebateSessionId] = useState(0);
+    const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
+    const [scenarioData, setScenarioData] = useState(null);
+    const [scenarioSessionId, setScenarioSessionId] = useState(0);
     const [selectedGameType, setSelectedGameType] = useState('AI Quiz Generator');
     const [alerts, setAlerts] = useState([]);
 
@@ -182,6 +188,47 @@ export function UIProvider({ children }) {
         setCompanionSeed(null);
     };
 
+    const openDebate = (data) => {
+        setDebateData(data);
+        setDebateSessionId(prev => prev + 1);
+        setIsDebateModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsFlashcardModalOpen(false);
+        setIsPuzzleModalOpen(false);
+        setIsBossModalOpen(false);
+        setIsCompanionModalOpen(false);
+        setIsCommunityModalOpen(false);
+        setIsPDFModalOpen(false);
+    };
+
+    const closeDebate = () => {
+        setIsDebateModalOpen(false);
+        setDebateData(null);
+    };
+
+    const openScenario = (data) => {
+        setScenarioData(data);
+        setScenarioSessionId(prev => prev + 1);
+        setIsScenarioModalOpen(true);
+        setIsLoginOpen(false);
+        setIsSignupOpen(false);
+        setIsPasteModalOpen(false);
+        setIsFlashcardModalOpen(false);
+        setIsPuzzleModalOpen(false);
+        setIsBossModalOpen(false);
+        setIsCompanionModalOpen(false);
+        setIsDebateModalOpen(false);
+        setIsCommunityModalOpen(false);
+        setIsPDFModalOpen(false);
+    };
+
+    const closeScenario = () => {
+        setIsScenarioModalOpen(false);
+        setScenarioData(null);
+    };
+
     const value = {
         isLoginOpen,
         isSignupOpen,
@@ -200,6 +247,12 @@ export function UIProvider({ children }) {
         isCompanionModalOpen,
         companionSeed,
         companionSessionId,
+        isDebateModalOpen,
+        debateData,
+        debateSessionId,
+        isScenarioModalOpen,
+        scenarioData,
+        scenarioSessionId,
         selectedGameType,
         setSelectedGameType,
         openLogin,
@@ -222,6 +275,10 @@ export function UIProvider({ children }) {
         closeBoss,
         openCompanion,
         closeCompanion,
+        openDebate,
+        closeDebate,
+        openScenario,
+        closeScenario,
         switchToSignup,
         switchToLogin,
         alerts,

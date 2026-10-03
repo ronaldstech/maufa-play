@@ -4,18 +4,20 @@ import { useAuth } from '../contexts/AuthContext';
 import { analyzeContent, generateGameContent } from '../services/aiService';
 import { db } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { BrainCircuit, Sliders, Sparkles } from 'lucide-react';
+import { BrainCircuit, Sliders, Sparkles, Swords, Compass } from 'lucide-react';
 import Modal from './Modal';
 import './PasteNotesModal.css';
 
 const PasteNotesModal = () => {
-    const { isPasteModalOpen, closePasteModal, openQuiz, openFlashcards, openPuzzle, openBoss, openCompanion, selectedGameType, userProfile, showAlert } = useUI();
+    const { isPasteModalOpen, closePasteModal, openQuiz, openFlashcards, openPuzzle, openBoss, openCompanion, openDebate, openScenario, selectedGameType, userProfile, showAlert } = useUI();
     const { currentUser } = useAuth();
     const isFlashcards = selectedGameType === "AI Flashcard Battle";
     const isPuzzle = selectedGameType === "AI Puzzle Generator";
     const isBoss = selectedGameType === "AI Boss Battle";
     const isCompanion = selectedGameType === "AI Study Companion";
-    const contentLabel = isFlashcards ? 'Flashcards' : (isPuzzle ? 'Puzzle' : (isBoss ? 'Battle' : 'Quiz'));
+    const isDebate = selectedGameType === "AI Debate Game";
+    const isScenario = selectedGameType === "AI Scenario Simulator";
+    const contentLabel = isFlashcards ? 'Flashcards' : (isPuzzle ? 'Puzzle' : (isBoss ? 'Battle' : (isDebate ? 'Debate' : (isScenario ? 'Scenario' : 'Quiz'))));
     const itemLabel = isFlashcards ? 'flashcards' : (isPuzzle ? 'puzzles' : (isBoss ? 'battle questions' : 'questions'));
     const countLabel = isFlashcards ? 'Flashcards' : (isPuzzle ? 'Terms' : 'Questions');
     const [step, setStep] = useState(1); // 1: Paste, 2: Analyzing, 3: Slider/Configure, 4: Generating
@@ -80,7 +82,92 @@ const PasteNotesModal = () => {
         }
     };
 
+    const startDebate = async () => {
+        setIsProcessing(true);
+        setError(null);
+
+        try {
+            if (!currentUser) {
+                throw new Error('You must be logged in to start and save a debate.');
+            }
+
+            const debateRef = await addDoc(collection(db, 'debates'), {
+                userId: currentUser.uid,
+                creatorName: userProfile?.displayName || currentUser.email.split('@')[0],
+                creatorAvatar: userProfile?.photoURL || null,
+                topic: analysis.topic,
+                summary: analysis.summary,
+                sourceMaterial: notes.substring(0, 1000),
+                createdAt: serverTimestamp(),
+                gameType: selectedGameType
+            });
+
+            closePasteModal();
+            resetState();
+
+            openDebate({
+                topic: analysis.topic,
+                summary: analysis.summary,
+                context: notes,
+                debateId: debateRef.id
+            });
+        } catch (err) {
+            showAlert(err.message, 'error');
+            setStep(3);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const startScenario = async () => {
+        setIsProcessing(true);
+        setError(null);
+
+        try {
+            if (!currentUser) {
+                throw new Error('You must be logged in to start and save a scenario.');
+            }
+
+            const scenarioRef = await addDoc(collection(db, 'scenarios'), {
+                userId: currentUser.uid,
+                creatorName: userProfile?.displayName || currentUser.email.split('@')[0],
+                creatorAvatar: userProfile?.photoURL || null,
+                topic: analysis.topic,
+                summary: analysis.summary,
+                sourceMaterial: notes.substring(0, 1000),
+                createdAt: serverTimestamp(),
+                gameType: selectedGameType,
+                plays: 0
+            });
+
+            closePasteModal();
+            resetState();
+
+            openScenario({
+                topic: analysis.topic,
+                summary: analysis.summary,
+                context: notes,
+                scenarioId: scenarioRef.id
+            });
+        } catch (err) {
+            showAlert(err.message, 'error');
+            setStep(3);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     const handleGenerate = async () => {
+        if (isDebate) {
+            await startDebate();
+            return;
+        }
+
+        if (isScenario) {
+            await startScenario();
+            return;
+        }
+
         setIsProcessing(true);
         setStep(4);
         setError(null);
@@ -279,25 +366,33 @@ const PasteNotesModal = () => {
                                 <p className="summary-text">{analysis.summary}</p>
                             </div>
 
-                            <div className="slider-section">
-                                <div className="slider-header">
-                                    <label>Number of {countLabel}</label>
-                                    <span className="count-badge">{questionCount}</span>
+                            {isDebate || isScenario ? (
+                                <p className="slider-hint">
+                                    {isDebate
+                                        ? 'Next you choose which side to argue, how tough the AI opponent is, and how many rounds you want.'
+                                        : 'Next you set how intense the situation is and how many decisions you will have to make.'}
+                                </p>
+                            ) : (
+                                <div className="slider-section">
+                                    <div className="slider-header">
+                                        <label>Number of {countLabel}</label>
+                                        <span className="count-badge">{questionCount}</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max={analysis.maxQuestions}
+                                        value={questionCount}
+                                        onChange={(e) => setQuestionCount(parseInt(e.target.value))}
+                                        className="premium-slider"
+                                    />
+                                    <div className="slider-range">
+                                        <span>1</span>
+                                        <span>Max: {analysis.maxQuestions}</span>
+                                    </div>
+                                    <p className="slider-hint">Based on your content, AI suggests up to {analysis.maxQuestions} {isFlashcards ? 'cards' : 'questions'}.</p>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max={analysis.maxQuestions}
-                                    value={questionCount}
-                                    onChange={(e) => setQuestionCount(parseInt(e.target.value))}
-                                    className="premium-slider"
-                                />
-                                <div className="slider-range">
-                                    <span>1</span>
-                                    <span>Max: {analysis.maxQuestions}</span>
-                                </div>
-                                <p className="slider-hint">Based on your content, AI suggests up to {analysis.maxQuestions} {isFlashcards ? 'cards' : 'questions'}.</p>
-                            </div>
+                            )}
                         </div>
                     )}
 
@@ -333,7 +428,11 @@ const PasteNotesModal = () => {
                     )}
                     {step === 3 && (
                         <button className="btn-primary" onClick={handleGenerate} disabled={isProcessing}>
-                            Generate {questionCount} {countLabel} <Sparkles size={18} />
+                            {isDebate
+                                ? <>Set Up Debate <Swords size={18} /></>
+                                : isScenario
+                                    ? <>Set Up Scenario <Compass size={18} /></>
+                                    : <>Generate {questionCount} {countLabel} <Sparkles size={18} /></>}
                             <div className="btn-glow"></div>
                         </button>
                     )}

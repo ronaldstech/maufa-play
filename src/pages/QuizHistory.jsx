@@ -19,7 +19,10 @@ import {
     Search,
     Filter,
     Trophy,
-    Skull
+    Skull,
+    Scale,
+    Gauge,
+    Compass
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
@@ -32,6 +35,33 @@ const QuizHistory = () => {
     const [results, setResults] = useState([]);
     const [selectedResult, setSelectedResult] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+
+    const isDebateResult = (result) => result?.gameType === 'AI Debate Game';
+    const isScenarioResult = (result) => result?.gameType === 'AI Scenario Simulator';
+
+    const outcomeIcon = (result) => {
+        if (result.outcome === 'you') return <Trophy size={24} />;
+        if (result.outcome === 'ai') return <Scale size={24} />;
+        if (result.outcome === 'draw') return <Scale size={24} />;
+        if (result.outcome === 'success') return <Trophy size={24} />;
+        if (result.outcome === 'partial') return <Scale size={24} />;
+        if (result.outcome === 'failure') return <Skull size={24} />;
+        if (result.outcome === 'victory') return <Trophy size={24} />;
+        if (result.outcome === 'defeat') return <Skull size={24} />;
+        return <BrainCircuit size={24} />;
+    };
+
+    const outcomeTitle = (result) => {
+        if (result.outcome === 'you') return 'You Won The Debate!';
+        if (result.outcome === 'ai') return 'The AI Took The Round';
+        if (result.outcome === 'draw') return 'Honest Draw';
+        if (result.outcome === 'success') return 'You Held The Situation';
+        if (result.outcome === 'partial') return 'Mixed Outcome';
+        if (result.outcome === 'failure') return 'The Situation Broke Down';
+        if (result.outcome === 'victory') return 'Victory!';
+        if (result.outcome === 'defeat') return 'Boss Defeated You';
+        return result.accuracy > 70 ? 'Excellent Work!' : 'Keep Pushing!';
+    };
 
     useEffect(() => {
         if (!currentUser) return;
@@ -114,12 +144,14 @@ const QuizHistory = () => {
                                 >
                                     <div className="item-card-header">
                                         <div className="item-icon">
-                                            {result.outcome
-                                                ? (result.outcome === 'victory' ? <Trophy size={24} /> : <Skull size={24} />)
-                                                : <BrainCircuit size={24} />}
+                                            {outcomeIcon(result)}
                                         </div>
                                         <div className={`item-score-badge ${result.accuracy >= 70 ? 'high' : 'low'}`}>
-                                            {result.score}/{result.totalQuestions}
+                                            {isDebateResult(result)
+                                                ? `${result.userScore ?? result.accuracy}`
+                                                : isScenarioResult(result)
+                                                    ? `${result.accuracy}%`
+                                                    : `${result.score}/${result.totalQuestions}`}
                                         </div>
                                     </div>
                                     <div className="item-card-body">
@@ -170,9 +202,7 @@ const QuizHistory = () => {
                                     </div>
                                     <div className="header-text">
                                         <h1>
-                                            {selectedResult.outcome
-                                                ? (selectedResult.outcome === 'victory' ? 'Victory!' : 'Boss Defeated You')
-                                                : (selectedResult.accuracy > 70 ? "Excellent Work!" : "Keep Pushing!")}
+                                            {outcomeTitle(selectedResult)}
                                         </h1>
 
                                     </div>
@@ -223,6 +253,26 @@ const QuizHistory = () => {
                                                 <span className="value">{selectedResult.duration}s</span>
                                             </div>
                                         </div>
+
+                                        {isDebateResult(selectedResult) && (
+                                            <div className="metric-pill debate-metric">
+                                                <Scale size={20} />
+                                                <div className="metric-data">
+                                                    <span className="label">AI Opponent</span>
+                                                    <span className="value">{selectedResult.aiScore ?? '—'}</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {isScenarioResult(selectedResult) && Array.isArray(selectedResult.finalMeters) && (
+                                            <div className="metric-pill debate-metric">
+                                                <Gauge size={20} />
+                                                <div className="metric-data">
+                                                    <span className="label">Decisions</span>
+                                                    <span className="value">{selectedResult.totalQuestions}</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -230,12 +280,48 @@ const QuizHistory = () => {
 
                         <div className="performance-review">
                             <div className="review-header-section">
-                                <h3><BarChart3 size={24} /> Performance Analysis</h3>
-                                <p>Review your answers and learn from the results</p>
+                                <h3>
+                                    {isDebateResult(selectedResult)
+                                        ? <><Scale size={24} /> Debate Transcript</>
+                                        : isScenarioResult(selectedResult)
+                                            ? <><Compass size={24} /> Decision Log</>
+                                            : <><BarChart3 size={24} /> Performance Analysis</>}
+                                </h3>
+                                <p>
+                                    {isDebateResult(selectedResult)
+                                        ? 'Read back through how the debate actually unfolded'
+                                        : isScenarioResult(selectedResult)
+                                            ? 'See how each of your calls changed the situation'
+                                            : 'Review your answers and learn from the results'}
+                                </p>
                             </div>
 
                             <div className="review-list">
-                                {Array.isArray(selectedResult.questions) ? (
+                                {(isDebateResult(selectedResult) || isScenarioResult(selectedResult)) && Array.isArray(selectedResult.transcript) ? (
+                                    <>
+                                        {selectedResult.transcript.map((turn, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`review-item debate-review-item ${turn.role === 'user' ? 'is-incorrect' : 'is-correct'}`}
+                                                style={{ animationDelay: `${idx * 0.08}s` }}
+                                            >
+                                                <div className="review-item-number">
+                                                    <span>{turn.role === 'user' ? 'You' : 'AI'}</span>
+                                                </div>
+                                                <div className="review-item-body">
+                                                    <p className="debate-review-text">{turn.content}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {selectedResult.coachingTip || selectedResult.transferableLesson ? (
+                                            <div className="debate-coaching-note">
+                                                <Sparkles size={18} />
+                                                <p>{selectedResult.coachingTip || selectedResult.transferableLesson}</p>
+                                            </div>
+                                        ) : null}
+                                    </>
+                                ) : Array.isArray(selectedResult.questions) ? (
                                     selectedResult.questions.map((q, idx) => {
                                         const isCorrect = selectedResult.selectedAnswers?.[idx] === q.correctAnswer;
                                         return (

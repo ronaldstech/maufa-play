@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { UIProvider, useUI } from './contexts/UIContext';
+import { SettingsProvider } from './contexts/SettingsProvider';
 import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -13,6 +14,8 @@ import FlashCardsPlay from './pages/FlashCardsPlay';
 import PuzzlePlay from './pages/PuzzlePlay';
 import BossBattlePlay from './pages/BossBattlePlay';
 import StudyCompanion from './pages/StudyCompanion';
+import DebatePlay from './pages/DebatePlay';
+import ScenarioSimulatorPlay from './pages/ScenarioSimulatorPlay';
 import QuizHistory from './pages/QuizHistory';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -21,6 +24,7 @@ import Modal from './components/Modal';
 import CommunityModal from './components/CommunityModal';
 import PDFUploadModal from './components/PDFUploadModal';
 import ToastContainer from './components/ToastContainer';
+import AdminRouter from './admin/AdminRouter';
 
 function AppContent() {
   const { isLoginOpen, closeLogin, isSignupOpen, closeSignup } = useUI();
@@ -29,18 +33,29 @@ function AppContent() {
     <div className="app-container">
       <ScrollToTop />
       <div className="bg-mesh"></div>
-      <Navbar />
 
-      <main className="main-content flex-grow">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/games" element={<AIGames />} />
-          <Route path="/games/:id/setup" element={<GameSetup />} />
-          <Route path="/history" element={<QuizHistory />} />
-        </Routes>
-      </main>
+      <Routes>
+        <Route path="/admin/*" element={<AdminRouter />} />
+        <Route
+          path="*"
+          element={(
+            <>
+              <Navbar />
 
-      <Footer />
+              <main className="main-content flex-grow">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/games" element={<AIGames />} />
+                  <Route path="/games/:id/setup" element={<GameSetup />} />
+                  <Route path="/history" element={<QuizHistory />} />
+                </Routes>
+              </main>
+
+              <Footer />
+            </>
+          )}
+        />
+      </Routes>
 
       {/* Auth Modals */}
       <Modal isOpen={isLoginOpen} onClose={closeLogin} title="Sign In">
@@ -58,6 +73,8 @@ function AppContent() {
       <PuzzlePlay />
       <BossBattlePlay />
       <StudyCompanion />
+      <DebatePlay />
+      <ScenarioSimulatorPlay />
 
       {/* Community Content Browser */}
       <CommunityModal />
@@ -74,7 +91,9 @@ function App() {
   return (
     <AuthProvider>
       <UIProvider>
-        <AppContent />
+        <SettingsProvider>
+          <AppContent />
+        </SettingsProvider>
       </UIProvider>
     </AuthProvider>
   );

@@ -18,7 +18,7 @@ import Modal from './Modal';
 import './CommunityModal.css';
 
 const CommunityModal = () => {
-    const { isCommunityModalOpen, closeCommunityModal, openQuiz, openFlashcards, openBoss, openCompanion, selectedGameType } = useUI();
+const { isCommunityModalOpen, closeCommunityModal, openQuiz, openFlashcards, openBoss, openCompanion, openDebate, openScenario, selectedGameType } = useUI();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -26,8 +26,10 @@ const CommunityModal = () => {
     const isFlashcards = selectedGameType === "AI Flashcard Battle";
     const isBoss = selectedGameType === "AI Boss Battle";
     const isCompanion = selectedGameType === "AI Study Companion";
-    const typeLabel = isFlashcards ? 'Flashcards' : (isBoss ? 'Boss Battles' : (isCompanion ? 'Study Material' : 'Quizzes'));
-    const playLabel = isFlashcards ? 'Deck' : (isBoss ? 'Battle' : (isCompanion ? 'Tutor' : 'Quiz'));
+    const isDebate = selectedGameType === "AI Debate Game";
+    const isScenario = selectedGameType === "AI Scenario Simulator";
+    const typeLabel = isFlashcards ? 'Flashcards' : (isBoss ? 'Boss Battles' : (isCompanion ? 'Study Material' : (isDebate ? 'Debates' : (isScenario ? 'Scenarios' : 'Quizzes'))));
+    const playLabel = isFlashcards ? 'Deck' : (isBoss ? 'Battle' : (isCompanion ? 'Tutor' : (isDebate ? 'Debate' : (isScenario ? 'Simulation' : 'Quiz'))));
     const countLabel = isFlashcards ? 'Cards' : 'Questions';
     useEffect(() => {
         if (isCommunityModalOpen) {
@@ -38,7 +40,7 @@ const CommunityModal = () => {
     const fetchCommunityContent = async () => {
         setLoading(true);
         try {
-            const collectionName = isFlashcards ? 'flashcards' : (isBoss ? 'bosses' : 'quizzes');
+            const collectionName = isFlashcards ? 'flashcards' : (isBoss ? 'bosses' : (isDebate ? 'debates' : (isScenario ? 'scenarios' : 'quizzes')));
             const q = query(
                 collection(db, collectionName),
                 orderBy('createdAt', 'desc'),
@@ -67,6 +69,20 @@ const CommunityModal = () => {
             openCompanion({
                 context: [item.sourceMaterial, item.summary, item.topic].filter(Boolean).join('\n\n'),
                 topic: item.topic
+            });
+        } else if (isDebate) {
+            openDebate({
+                topic: item.topic,
+                summary: item.summary,
+                context: [item.sourceMaterial, item.summary, item.topic].filter(Boolean).join('\n\n'),
+                debateId: item.id
+            });
+        } else if (isScenario) {
+            openScenario({
+                topic: item.topic,
+                summary: item.summary,
+                context: [item.sourceMaterial, item.summary, item.topic].filter(Boolean).join('\n\n'),
+                scenarioId: item.id
             });
         } else if (isFlashcards) {
             openFlashcards({
@@ -122,7 +138,7 @@ const CommunityModal = () => {
                     {loading ? (
                         <div className="community-loading">
                             <Loader2 className="animate-spin" size={40} />
-                            <p>Loading community {isFlashcards ? 'decks' : (isBoss ? 'boss battles' : 'challenges')}...</p>
+                            <p>Loading community {isFlashcards ? 'decks' : (isBoss ? 'boss battles' : (isDebate ? 'debate topics' : (isScenario ? 'scenarios' : 'challenges')))}...</p>
                         </div>
                     ) : filteredItems.length > 0 ? (
                         <div className="quizzes-grid">
@@ -154,11 +170,11 @@ const CommunityModal = () => {
                                     <div className="quiz-meta">
                                         <div className="meta-item">
                                             <HelpCircle size={14} />
-                                            <span>{isFlashcards ? item.flashcards?.length : item.questions?.length || 0} {countLabel}</span>
+                                            <span>{isDebate ? 'Debate' : (isScenario ? 'Simulation' : `${isFlashcards ? item.flashcards?.length : item.questions?.length || 0} ${countLabel}`)}</span>
                                         </div>
                                         <div className="meta-item">
                                             <Users size={14} />
-                                            <span>{item.attempts || 0} Plays</span>
+                                            <span>{item.attempts || item.plays || 0} Plays</span>
                                         </div>
                                         <div className="meta-item">
                                             <Sparkles size={14} />
@@ -182,7 +198,7 @@ const CommunityModal = () => {
                 </div>
 
                 <div className="community-footer">
-                    <p>Total Contribution: <strong>{items.length}+</strong> {isFlashcards ? 'Decks' : (isBoss ? 'Boss Battles' : 'Quizzes')}</p>
+                    <p>Total Contribution: <strong>{items.length}+</strong> {isFlashcards ? 'Decks' : (isBoss ? 'Boss Battles' : (isDebate ? 'Debates' : (isScenario ? 'Scenarios' : 'Quizzes')))}</p>
                     <button className="btn-ghost" onClick={closeCommunityModal}>Close</button>
                 </div>
             </div>

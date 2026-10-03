@@ -81,7 +81,14 @@ export function AuthProvider({ children }) {
                 const userRef = doc(db, 'users', user.uid);
                 unsubProfile = onSnapshot(userRef, (doc) => {
                     if (doc.exists()) {
-                        setUserProfile(doc.data());
+                        const profile = doc.data();
+                        setUserProfile(profile);
+
+                        // Admins can ban accounts from the control room; honour it immediately.
+                        if (profile.banned === true) {
+                            setUserProfile(null);
+                            signOut(auth);
+                        }
                     } else {
                         setUserProfile(null); // User profile might have been deleted
                     }
