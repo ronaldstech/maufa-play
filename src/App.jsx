@@ -17,6 +17,7 @@ import StudyCompanion from './pages/StudyCompanion';
 import DebatePlay from './pages/DebatePlay';
 import ScenarioSimulatorPlay from './pages/ScenarioSimulatorPlay';
 import QuizHistory from './pages/QuizHistory';
+import NotesLab from './notes/NotesLab';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import PasteNotesModal from './components/PasteNotesModal';
@@ -48,6 +49,7 @@ function AppContent() {
                   <Route path="/games" element={<AIGames />} />
                   <Route path="/games/:id/setup" element={<GameSetup />} />
                   <Route path="/history" element={<QuizHistory />} />
+                  <Route path="/notes" element={<NotesLab />} />
                 </Routes>
               </main>
 

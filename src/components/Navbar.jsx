@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 import { useRef } from 'react';
-import { Menu, X, User, Home, Zap, Gamepad2, History, Info, LogOut, ChevronDown, Settings, ShieldCheck } from 'lucide-react';
+import { Menu, X, User, Home, Zap, Gamepad2, History, Info, LogOut, ChevronDown, Settings, ShieldCheck, NotebookPen } from 'lucide-react';
 import { isStaff } from '../admin/permissions';
 import './Navbar.css';
 
@@ -71,6 +71,9 @@ const Navbar = () => {
                     </Link>
                     <Link to="/games" className={`nav-link ${isActive('/games') ? 'active-link' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
                         <Gamepad2 size={18} /> <span>AI Games</span>
+                    </Link>
+                    <Link to="/notes" className={`nav-link ${isActive('/notes') ? 'active-link' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+                        <NotebookPen size={18} /> <span>Notes Lab</span>
                     </Link>
                     {currentUser && (
                         <Link to="/history" className={`nav-link ${isActive('/history') ? 'active-link' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>

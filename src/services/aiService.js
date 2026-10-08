@@ -1,26 +1,7 @@
 import axios from 'axios';
-
-const GROQ_API_URL = '/api/groq/chat/completions';
-const GROQ_MODEL = 'openai/gpt-oss-120b';
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_GROK_API_KEY;
+import { API_KEY, GROQ_API_URL, GROQ_MODEL, parseJsonLoose } from './groqClient';
 
 const BOSS_DIFFICULTY_ORDER = ['easy', 'medium', 'hard'];
-
-const parseJsonLoose = (raw) => {
-    if (typeof raw !== 'string') return raw;
-
-    const trimmed = raw.trim();
-    try {
-        return JSON.parse(trimmed);
-    } catch {
-        const start = trimmed.indexOf('{');
-        const end = trimmed.lastIndexOf('}');
-        if (start !== -1 && end > start) {
-            return JSON.parse(trimmed.slice(start, end + 1));
-        }
-        throw new Error("AI returned invalid JSON format.");
-    }
-};
 
 const findQuestionsArray = (parsed) => {
     if (Array.isArray(parsed)) return parsed;
